@@ -21,7 +21,7 @@ check("the two apps carry the same RenderGuard", a_guard.split("\n", 1)[1] == h_
 # every WebView we create has a client that answers a dead renderer
 sources = list(APP.glob("*.java")) + list(HOME.glob("*.java")) + list((HOME / "tilawah").glob("*.java"))
 makers = [p for p in sources if "new WebView(" in text(p)]
-check("the files that make a WebView: ScreenView and HomeCard, no others", sorted(p.name for p in makers) == ["HomeCard.java", "ScreenView.java"], [p.name for p in makers])
+check("the files that make a WebView: ScreenView, HomeCard and HomePage, no others", sorted(p.name for p in makers) == ["HomeCard.java", "HomePage.java", "ScreenView.java"], [p.name for p in makers])
 for p in makers:
     s = text(p)
     check(f"{p.name}: onRenderProcessGone is handled and answers true (the app is not taken down with the renderer)",
@@ -40,8 +40,14 @@ card = text(HOME / "HomeCard.java")
 check("HomeCard: the dead view is destroyed, made again only while the home screen is in front and the guard allows",
       "guard.gone(" in card and "if (resumed) refresh();" in card and "guard.mayCreate(" in card and "if (v != web) { v.destroy(); return true; }" in card)
 check("HomeCard: resume does not bring a view back while the guard says no", card.index("guard.mayCreate(") < card.index("create(want);"))
-check("the only pauseTimers/resumeTimers are HomeCard's (the launcher has no other WebView, the screensaver app none), so no process-wide overlap",
-      [p.name for p in sources if "pauseTimers" in text(p) or "resumeTimers" in text(p)] == ["HomeCard.java"])
+page = text(HOME / "HomePage.java")
+check("HomePage: the dead view is destroyed, made again only while the home screen is in front and the guard allows",
+      "guard.gone(" in page and "if (resumed) refresh();" in page and "guard.mayCreate(" in page and "if (v != web) { v.destroy(); return true; }" in page
+      and page.index("guard.mayCreate(") < page.index("create(want);"))
+main = text(HOME / "MainActivity.java")
+check("the only pauseTimers/resumeTimers are HomeCard's and HomePage's, and the home screen never makes HomeCard's view (the page replaced the cards), so no process-wide overlap",
+      sorted(p.name for p in sources if "pauseTimers" in text(p) or "resumeTimers" in text(p)) == ["HomeCard.java", "HomePage.java"]
+      and "homeCard.refresh()" not in main and "homePage.refresh()" in main)
 
 if not shutil.which("javac"):
     print("SKIP render guard: no javac here")

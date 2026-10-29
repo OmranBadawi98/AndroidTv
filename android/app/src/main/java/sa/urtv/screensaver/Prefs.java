@@ -625,6 +625,10 @@ final class Prefs {
     boolean greeting() { return sp.getBoolean("greeting", true); }
     void setGreeting(boolean v) { sp.edit().putBoolean("greeting", v).apply(); }
 
+    /** «زر الواي فاي»: the Wi-Fi pill in the home screen's top row (default off: the owner took it out of the row). */
+    boolean wifiPill() { return sp.getBoolean("wifiPill", false); }
+    void setWifiPill(boolean v) { sp.edit().putBoolean("wifiPill", v).apply(); }
+
     List<String> teamIds() {
         List<String> ids = new ArrayList<>();
         for (String t : teams()) ids.add(t.split("\\|", 2)[0]);

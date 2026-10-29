@@ -21,7 +21,7 @@ m = re.search(r'<meta name="urtv-build" content="(\d{14})"', html[:4096])
 check("dist/tv.html carries its build stamp in the first 4 KB (14 digits, UTC)", bool(m), html[:300])
 prefs, upd = (APP / "Prefs.java").read_text(encoding="utf-8"), (APP / "Updater.java").read_text(encoding="utf-8")
 check("Prefs.pageBase picks the downloaded page by stamp, not by file time", "PageStamp.newer(Updater.fileStamp(remote), Updater.assetStamp(c))" in prefs and "lastModified" not in prefs and "lastUpdateTime" not in prefs)
-check("Updater does not keep a download whose stamp is older than the app's own page", "PageStamp.newer(assetStamp(c), PageStamp.of(head))" in upd)
+check("Updater downloads no page, and drops one an older build downloaded", "openConnection" not in upd and "pageFile(c).delete()" in upd)
 check("the stamp is in the first bytes the Updater reads (4 KB) and the app reads (8 KB)", bool(m) and html.index("urtv-build") < 4000)
 
 if not shutil.which("javac"):

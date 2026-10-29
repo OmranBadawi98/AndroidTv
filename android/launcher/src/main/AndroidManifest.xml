@@ -2,7 +2,7 @@
 <!-- Home screen adapted from github.com/mihirgupta0900/tv-home (MIT). -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />   <!-- hosted wallpapers, the optional card -->
+    <uses-permission android:name="android.permission.INTERNET" />   <!-- the optional card, «تلاوة», and the TV's own ADB (AppsActivity) -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Android 11 only reveals the Wi-Fi name to apps holding location; granted over ADB at install. -->
@@ -21,6 +21,8 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <!-- the adhan sets the TV's volume to its own level and puts it back afterwards -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- «إدارة التطبيقات» lists every app, system ones and those with no launcher entry too -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
     <!-- the screensaver (same signing key) asks what is playing, for its «يُتلى الآن» card -->
     <permission
@@ -89,6 +91,14 @@
             android:name=".DockActivity"
             android:exported="true"
             android:label="ترتيب المفضلة"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+
+        <!-- «إدارة التطبيقات»: favourites and disabling apps through the TV's own ADB. Not exported: only this app opens it -->
+        <activity
+            android:name=".AppsActivity"
+            android:exported="false"
+            android:label="إدارة التطبيقات"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.Material.NoActionBar" />
 

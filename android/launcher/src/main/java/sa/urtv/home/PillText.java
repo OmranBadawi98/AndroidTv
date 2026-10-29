@@ -13,11 +13,6 @@ final class PillText {
     /** the screensaver pill's name: OK starts the screensaver, a long OK opens its settings, and the focused pill says so */
     static final String SAVER = "شاشة التوقف · مطوّلًا: الإعدادات";
 
-    /** «مؤقت النوم», or with the minutes left while the timer runs: «مؤقت النوم ٢٣ د» */
-    static String sleep(int minutesLeft) {
-        return minutesLeft <= 0 ? "مؤقت النوم" : "مؤقت النوم " + digits(String.valueOf(minutesLeft)) + " د";
-    }
-
     /** the network pill's name: the cable, the Wi-Fi network by name when it can be read (else «واي فاي»), or «غير متصل» */
     static String network(boolean wired, boolean wifi, String ssid) {
         if (wired) return "شبكة سلكية";

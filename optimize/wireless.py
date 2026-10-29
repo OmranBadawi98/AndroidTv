@@ -329,7 +329,7 @@ class AdbCli:
     """The same few calls as adb_shell's AdbDeviceTcp (connect, shell, pull, close), through the adb program, for a TV that
     is reached by Wireless debugging. The port is looked up again by mDNS when it no longer answers."""
 
-    chunk = 24_000   # a Windows command line stops at 32 KB, far below the 96 KB pieces of a plain upload
+    chunk = 24_000   # a Windows command line stops at 32 KB, below the 48 KB pieces of a plain upload
 
     def __init__(self, host, state, timeout=60.0, run=subprocess.run, browse_fn=browse):
         self.host, self.state, self.timeout = host, dict(state), timeout

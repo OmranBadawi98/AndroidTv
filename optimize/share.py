@@ -38,12 +38,12 @@ for stream in (sys.stdout, sys.stderr):   # Windows writes pipes in its own code
 RUN = Path(__file__).resolve().parent / "run"
 OUT = RUN / "share.md"
 QR = RUN / "share-qr.png"
-# The author's Google Form (anonymous, no sign-in): each summary becomes a row in the author's sheet. The same two
-# values are in docs/share/index.html.
-FORM_ID = "1FAIpQLSfDJFfy1NgiB-ZMXoBI29n_KTdYnGadn1-iOqXJOxaQJEr-ZQ"   # from the form's link: docs.google.com/forms/d/e/<FORM_ID>/viewform
-FORM_FIELD = "1457112794"   # the question's number: entry.<FORM_FIELD>=… in the form's pre-filled link
-# Without the form, or offline: the QR code opens this page (docs/share/, GitHub Pages) with the summary after the #
-PAGE = "https://tshi-dev.github.io/UrTV/share/"
+# Sending is off on this copy: it has its own owner, so a report is never sent to the original author's Google Form or
+# page. Put your own form's values here to send to yourself (FORM_ID from docs.google.com/forms/d/e/<FORM_ID>/viewform,
+# FORM_FIELD from entry.<FORM_FIELD>=… in its pre-filled link; PAGE: a copy of docs/share/ for the QR code).
+FORM_ID = ""
+FORM_FIELD = ""
+PAGE = ""
 
 
 # --- what a report may contain -------------------------------------------------------------------------------------
@@ -371,7 +371,10 @@ def main():
 
 def deliver(text):
     if send(text):
-        print("Sent to the author. Thank you!")
+        print("Sent. Thank you!")
+        return
+    if not PAGE:
+        print("Kept on this computer only: sending is off in this copy (optimize/share.py, FORM_ID and PAGE).")
         return
     # not sent from here (no internet?): a QR code carries it to the phone, whose page sends it
     if qr(PAGE + "#" + urllib.parse.quote(text)):
@@ -380,7 +383,9 @@ def deliver(text):
 
 
 def send(text):
-    """Into the author's Google Form, anonymously; False if it didn't go through."""
+    """Into the Google Form of FORM_ID, anonymously; False if it didn't go through, or if there is none."""
+    if not FORM_ID:
+        return False
     url = f"https://docs.google.com/forms/d/e/{FORM_ID}/formResponse"
     data = urllib.parse.urlencode({f"entry.{FORM_FIELD}": text}).encode()
     try:

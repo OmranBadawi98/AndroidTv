@@ -105,6 +105,10 @@ tv.signer = lambda: None
 
 import contextlib, io
 
+# the seeds below were drawn for 96 KB pieces; the piece size is not what this checks (resuming is), so it stays fixed here
+CHUNK = 96_000
+
+
 def one(seed):
     random.seed(seed)
     FS.clear(); JOB.clear()
@@ -122,10 +126,10 @@ def one(seed):
     t.shell = dying
     with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
         try:
-            tv.push_b64(t, src, "/data/local/tmp/x.apk")
+            tv.push_b64(t, src, "/data/local/tmp/x.apk", chunk=CHUNK)
         except KeyboardInterrupt:
             pass
-        tv.push_b64(tv.TV(), src, "/data/local/tmp/x.apk")   # run again: resumes or restarts
+        tv.push_b64(tv.TV(), src, "/data/local/tmp/x.apk", chunk=CHUNK)   # run again: resumes or restarts
     return FS.get("/data/local/tmp/x.apk") == data
 
 bad = [seed for seed in range(50) if not one(seed)]

@@ -37,8 +37,10 @@ CASES = [
 launcher = list((ROOT / "android/launcher/src/main/java").rglob("*.java"))
 makers = [p.name for p in launcher if "new WebView(" in p.read_text(encoding="utf-8")]
 timers = [p.name for p in launcher if "pauseTimers" in p.read_text(encoding="utf-8").replace("pauseTimers()/resumeTimers()", "")]
-card_ok = makers == ["HomeCard.java"] and timers == ["HomeCard.java"]
-print(("PASS " if card_ok else "FAIL ") + "the launcher has exactly one WebView (HomeCard), the only place that calls the process-wide pauseTimers()/resumeTimers()"
+main_src = (ROOT / "android/launcher/src/main/java/sa/urtv/home/MainActivity.java").read_text(encoding="utf-8")
+card_ok = sorted(makers) == ["HomeCard.java", "HomePage.java"] and sorted(timers) == ["HomeCard.java", "HomePage.java"] \
+    and "homeCard.refresh()" not in main_src and "homePage.refresh()" in main_src
+print(("PASS " if card_ok else "FAIL ") + "the launcher's WebViews are HomeCard and HomePage, never both at once (the home screen refreshes only the page), the only places that call the process-wide pauseTimers()/resumeTimers()"
       + ("" if card_ok else f"  -> WebViews: {makers}, pauseTimers in: {timers}; revisit HomeCard.pause()/refresh() before adding another"))
 
 javac, java = shutil.which("javac"), shutil.which("java")

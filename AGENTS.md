@@ -9,9 +9,12 @@ real reports. Each one cost somebody their setup.
   with its command. Use these commands; there is no other way to change a setting.
 
 **Never**
-- Edit the apps' code, build an APK, or install your own build. A self-built app is signed with another key and can
-  **never update again** (5 reports). If an APK from us won't install, stop and follow the `!!` line.
-- Turn the apps' auto-update off, or `pm uninstall` anything. If an install says another signature is installed, the line
+- Build the apps any other way than `android/build-apks.sh` with the owner's own key (`ANDROID_KEYSTORE`), or install an
+  APK signed with another key: it can **never update** over theirs (5 reports). If an APK won't install, stop and follow the
+  `!!` line.
+- Clone, pull or download from `tshi-dev/UrTV`: this copy takes nothing from it. The APKs come from `optimize/apk/`
+  (`android/build-apks.sh`), and the apps fetch nothing from GitHub.
+- `pm uninstall` anything. If an install says another signature is installed, the line
   tells you to ask the person first; their settings, tasks and own adhan go with it.
 - Override a guard: a `!!` line means stop and do what it says, then run the same command again. Do not work around it, do
   not copy a command out of a script to run it by hand without its check.
@@ -22,8 +25,8 @@ real reports. Each one cost somebody their setup.
 - Restart the TV with a plain `reboot`: use `optimize/venv/bin/python -I optimize/tv.py --reboot`.
 
 **Problems**
-- Report a problem only with `optimize/share.sh --preview --problem --owner "<their words>" "<what you checked>"`, show
-  the person what it will send, then `optimize/share.sh --send`. Never a GitHub issue or comment.
+- Write a problem down only with `optimize/share.sh --preview --problem --owner "<their words>" "<what you checked>"` and
+  show the person: sending is off in this copy, the report stays on this computer. Never a GitHub issue or comment.
 - A `!!` line is in the table «When something goes wrong» in `docs/SETUP-PROMPT.md`: find it there first.
 
 **Stable first:** small, safe changes; defaults unchanged unless it is a bug; nothing that can break a setup in progress

@@ -55,7 +55,7 @@ def symbols():
     src = (ROOT / "src" / "template.html").read_text(encoding="utf-8")
     out = {}
     block = re.search(r"const MARKETS = \{(.*?)\n\};", src, re.S).group(1)
-    for m in re.finditer(r"(\w+):\s*\{[^}]*?(?:sym:'([^']+)'|cg:'(\w+)')", block):
+    for m in re.finditer(r"(\w+):\s*\{[^}]*?(?:\bsym:'([^']+)'|\bcg:'(\w+)')", block):
         sym = m.group(2) or CG_TO_YAHOO[m.group(3)]
         out[sym] = "sa" if sym.endswith(".SR") else "always" if sym in ALWAYS_ON else "us"
     tad = re.search(r"const TADAWUL = \{(.*?)\n\};", src, re.S).group(1)

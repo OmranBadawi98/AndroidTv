@@ -21,12 +21,11 @@ final class PinUi {
     static TextView text(Context c,String value,int size,int color){
         TextView t=new TextView(c);t.setText(value);t.setTextSize(size);t.setTextColor(color);
         t.setGravity(Gravity.RIGHT);t.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
-        try{t.setTypeface(Typeface.createFromAsset(c.getAssets(),"fonts/"+(size>=25?"ThmanyahDisplay-Bold":"Thmanyah-Regular")+".otf"));}
-        catch(RuntimeException ignored){t.setTypeface(Typeface.create("sans-serif",Typeface.NORMAL));}return t;
+        t.setTypeface(Fonts.get(c,(size>=25?"ThmanyahDisplay-Bold":"Thmanyah-Regular")+".otf"));return t;
     }
     static Button button(Context c,String label){
         Button b=new Button(c);b.setId(View.generateViewId());b.setText(label);b.setAllCaps(false);
-        b.setTextSize(21);try{b.setTypeface(Typeface.createFromAsset(c.getAssets(),"fonts/Thmanyah-Medium.otf"));}catch(RuntimeException ignored){}b.setGravity(Gravity.CENTER);
+        b.setTextSize(21);b.setTypeface(Fonts.get(c,"Thmanyah-Medium.otf"));b.setGravity(Gravity.CENTER);
         b.setPadding(dp(c,16),dp(c,8),dp(c,16),dp(c,8));
         b.setMinWidth(0);b.setMinimumWidth(0);b.setMinHeight(0);b.setMinimumHeight(0);
         b.setBackgroundTintList(null);b.setStateListAnimator(null);

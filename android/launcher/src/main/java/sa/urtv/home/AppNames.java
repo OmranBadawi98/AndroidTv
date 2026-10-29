@@ -1,18 +1,18 @@
 package sa.urtv.home;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The name shown for an app: the one the owner's agent gave it on this TV (optimize/dock.sh name), else its own if it
- * has Arabic letters, else the Arabic one from res/values/app_names.xml, else its own.
+ * The name shown for an app: the one the owner's agent gave it on this TV (optimize/dock.sh name), else its own, the
+ * app's real name (the owner wants YouTube, not «يوتيوب»; res/values/app_names.xml is no longer used for the label).
  */
 final class AppNames {
     static final int MAX_LEN = 30;
-    private static Map<String, String> table;   // package -> Arabic name, read once
 
     private AppNames() {}
 
@@ -23,17 +23,19 @@ final class AppNames {
     static String label(Context c, ResolveInfo ri, Map<String, String> given) {
         String set = given.get(ri.activityInfo.packageName);
         if (set != null) return set;
-        String own = String.valueOf(ri.loadLabel(c.getPackageManager()));
-        if (hasArabic(own)) return own;
-        String ar = table(c).get(ri.activityInfo.packageName);
-        return ar != null ? ar : own;
+        return String.valueOf(ri.loadLabel(c.getPackageManager()));
     }
 
-    /** Where the shown name comes from, for dock.sh names: agent, own, table. */
+    /** The same for any installed app, one with no launcher entry or a disabled one too («إدارة التطبيقات»). */
+    static String label(Context c, ApplicationInfo ai, Map<String, String> given) {
+        String set = given.get(ai.packageName);
+        if (set != null) return set;
+        return String.valueOf(c.getPackageManager().getApplicationLabel(ai));
+    }
+
+    /** Where the shown name comes from, for dock.sh names: agent or own. */
     static String source(Context c, ResolveInfo ri, Map<String, String> given) {
-        if (given.containsKey(ri.activityInfo.packageName)) return "agent";
-        String own = String.valueOf(ri.loadLabel(c.getPackageManager()));
-        return !hasArabic(own) && table(c).containsKey(ri.activityInfo.packageName) ? "table" : "own";
+        return given.containsKey(ri.activityInfo.packageName) ? "agent" : "own";
     }
 
     /** Names set on this TV, kept as "pkg|name" lines in the home screen's preferences. */
@@ -64,17 +66,5 @@ final class AppNames {
             if ((ch >= 0x0600 && ch <= 0x06FF) || (ch >= 0x0750 && ch <= 0x077F) || (ch >= 0xFB50 && ch <= 0xFEFC)) return true;
         }
         return false;
-    }
-
-    private static synchronized Map<String, String> table(Context c) {
-        if (table == null) {
-            Map<String, String> t = new HashMap<>();
-            for (String row : c.getApplicationContext().getResources().getStringArray(R.array.app_names)) {
-                int bar = row.indexOf('|');
-                if (bar > 0) t.put(row.substring(0, bar).trim(), row.substring(bar + 1).trim());
-            }
-            table = t;
-        }
-        return table;
     }
 }

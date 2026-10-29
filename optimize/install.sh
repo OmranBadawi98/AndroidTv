@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Download the latest APKs from GitHub and install them on the TV.
+# Install the two apps on the TV from this computer: urtv-screensaver.apk and urtv-home.apk, your own build, in APK_DIR
+# (default optimize/apk; android/build-apks.sh puts them there). APK_URL=https://…/folder downloads them from your own place
+# instead. Nothing is taken from the original author's GitHub.
 #   optimize/install.sh saver      شاشة تلفزيونك: install + make it the screensaver
 #   optimize/install.sh launcher   the home screen: install + make it the default Home
 #                                  (it carries the «تلاوة» screens: the Quran recitations and the radio)
@@ -12,7 +14,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY="${PY:-optimize/venv/bin/python}"
-REL=https://github.com/tshi-dev/UrTV/releases/download/${APK_TAG:-apk-latest}   # APK_TAG=v3.N: that numbered build
+APK_DIR="${APK_DIR:-optimize/apk}"
+REL="${APK_URL:-}"
 what="${1:?usage: optimize/install.sh saver|launcher|extras|all}"
 case "$what" in saver|launcher|extras|all) ;; *) echo "usage: optimize/install.sh saver|launcher|extras|all" >&2; exit 2;; esac
 . optimize/home-journal.sh   # the journal of the home switch (what the switch changed, to undo it after a restart)
@@ -80,8 +83,13 @@ push_install() {   # $1 apk name, $2 package
   if [ "$2" = sa.urtv.home ]; then   # the home app targets an older SDK than Play Protect likes (seen on Android 12-14)
     echo "للشخص: بعد لحظات ممكن تطلع على التلفزيون رسالة من Play Protect؛ إذا طلعت اضغط «تثبيت على أي حال» (Install anyway)."
   fi
-  if ! curl_get -fsSL -o "optimize/$1" "$REL/$1"; then
-    echo "!! Could not download $REL/$1 (tag ${APK_TAG:-apk-latest}): no such build, or no internet"; exit 1
+  if [ -z "$REL" ]; then
+    if [ ! -f "$APK_DIR/$1" ]; then
+      echo "!! $APK_DIR/$1 is not there: build the apps with your own key first (android/build-apks.sh), then the same command again"; exit 1
+    fi
+    [ "$APK_DIR/$1" -ef "optimize/$1" ] || cp "$APK_DIR/$1" "optimize/$1"
+  elif ! curl_get -fsSL -o "optimize/$1" "$REL/$1"; then
+    echo "!! Could not download $REL/$1: no such file, or no internet"; exit 1
   fi
   "$PY" -I optimize/tv.py --push-b64 "optimize/$1" "/data/local/tmp/$1"
   local out

@@ -21,12 +21,19 @@ const check = (name, ok, detail = '') => {
 };
 
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+// On the TV the page reads no league file, market file or hosted photo set (they were on another owner's GitHub); every context
+// here gives it addresses of its own, answered by the mocks below (data.test) or from the repo (urtv.invalid/photos/), so the
+// code that reads them stays tested. The test «nothing asked of a data host» below opens a page without them.
+const DATA = { URTV_LEAGUE_BASE: 'https://data.test/data-leagues/leagues/', URTV_MARKET_URL: 'https://data.test/data-markets/markets/markets.json',
+               URTV_PHOTO_BASE: 'https://urtv.invalid/photos/' };
+const plainContext = browser.newContext.bind(browser);
+browser.newContext = async (...a) => { const c = await plainContext(...a); await c.addInitScript(d => Object.assign(self, d), DATA); return c; };
 
 async function open(file, hash, { width = 1920, height = 1080, seed = true, net = null, now = null, tzId = null } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height }, ...(tzId ? { timezoneId: tzId } : {}) });
   await ctx.route(/^https?:/, r => {
     if (net && net(r)) return;
-    const u = r.request().url(), i = u.indexOf('/master/'), rel = i > 0 ? u.slice(i + 8) : '';
+    const u = r.request().url(), rel = u.startsWith('https://urtv.invalid/') ? u.slice(21) : '';
     if (/^(assets\/(backgrounds|fonts)|photos)\//.test(rel))
       return r.fulfill({ path: path.join(ROOT, rel), headers: { 'Access-Control-Allow-Origin': '*' } });
     return r.abort();
@@ -639,6 +646,8 @@ const marketNet = state => r => {
   let m = u.match(/chart\/([^?]+)\?/);
   if (m) { const sym = decodeURIComponent(m[1]); if (state.fail && state.fail.includes(sym)) { r.fulfill({ status: 404, body: '{}' }); return true; }
            r.fulfill({ contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: MOCK[sym] }); return true; }
+  if (u.startsWith('https://dubaicityofgold.com/')) { r.fulfill({ contentType: 'text/html', headers: { 'Access-Control-Allow-Origin': '*' },
+    body: '<div><span class="sortd-gold-type">24K Gold</span>\n<span class="sortd-gold-value">AED 488.00</span></div>' }); return true; }
   m = u.match(/coingecko.*ids=(\w+)/);
   if (m) { r.fulfill({ contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' },
     body: JSON.stringify({ [m[1]]: m[1] === 'bitcoin' ? { usd: 67000.4, usd_24h_change: -1.234 } : { usd: 2.3456, usd_24h_change: 3.1 } }) }); return true; }
@@ -654,9 +663,9 @@ const mk = p => p.evaluate(() => [...document.querySelectorAll('.mk .m')].map(m 
   let r = await mk(p), up = await p.evaluate(() => document.getElementById('mk-up').textContent);
   check('markets prices: no errors', !errors.length, errors.join('; '));
   check('markets prices: names in the order chosen', r.map(x => x.n).join() === 'تاسي,أرامكو,الذهب,بيتكوين', JSON.stringify(r));
-  check('markets prices: index 0 decimals, stock 2, gram of gold 2 in ريال, bitcoin in dollars',
-    r[0].px === '١١٬٥٠٠|' && r[1].px === '٢٦٫٣٠|ر.س' && r[2].px === '٤٨٢٫٢٦|ر.س' && r[3].px === '٦٧٬٠٠٠|$', JSON.stringify(r));
-  check('markets prices: the day\'s change with the arrow, coloured', r[0].ch === '▲ ٠٫٤٤٪' && r[0].up && r[2].ch === '▲ ٠٫٥٠٪' && r[3].ch === '▼ ١٫٢٣٪' && !r[3].up, JSON.stringify(r));
+  check('markets prices: index 0 decimals, stock 2, gram of 24K gold 2 in درهم (Dubai City of Gold), bitcoin in dollars',
+    r[0].px === '١١٬٥٠٠|' && r[1].px === '٢٦٫٣٠|ر.س' && r[2].px === '٤٨٨٫٠٠|د.إ' && r[3].px === '٦٧٬٠٠٠|$', JSON.stringify(r));
+  check('markets prices: the day\'s change with the arrow, coloured (gold: none yet on its first day)', r[0].ch === '▲ ٠٫٤٤٪' && r[0].up && r[2].ch === '▲ ٠٫٠٠٪' && r[3].ch === '▼ ١٫٢٣٪' && !r[3].up, JSON.stringify(r));
   check('markets prices: «آخر تحديث» with the time', /^آخر تحديث [٠-٩]{1,2}:[٠-٩]{2} [صم]$/.test(up), up);
   state.off = true;                       // offline: what is shown stays
   await p.evaluate(() => loadMarkets());
@@ -1872,7 +1881,7 @@ for (const [width, height] of [[1920, 1080], [1280, 720], [960, 540]]) {
   const mock = r => {
     const u = new URL(r.request().url()), hdr = { 'Access-Control-Allow-Origin': '*' };
     seen.push(u.host + u.pathname + u.search);
-    if (u.host === 'raw.githubusercontent.com' && u.pathname.endsWith('/data-leagues/leagues/saudi-arabian-pro-league.json'))
+    if (u.host === 'data.test' && u.pathname.endsWith('/data-leagues/leagues/saudi-arabian-pro-league.json'))
       return r.fulfill({ json: FILE, headers: hdr });
     if (!/thesportsdb/.test(u.host)) return r.abort();
     if (u.pathname.endsWith('eventsnext.php')) return r.fulfill({ json: { events: [ROUND[0]] }, headers: hdr });
@@ -1957,7 +1966,7 @@ const tvMock = (extra = () => false) => r => {
   const u = new URL(r.request().url()), hdr = { 'Access-Control-Allow-Origin': '*' }, id = u.searchParams.get('id');
   const at = h => new Date(TV_NOW.getTime() + h * 36e5).toISOString().slice(0, 19);
   if (extra(r, u)) return true;
-  if (u.host === 'raw.githubusercontent.com' && u.pathname.endsWith('/data-leagues/leagues/saudi-arabian-pro-league.json'))
+  if (u.host === 'data.test' && u.pathname.endsWith('/data-leagues/leagues/saudi-arabian-pro-league.json'))
     { r.fulfill({ json: SAUDI_FILE, headers: hdr }); return true; }
   if (!/thesportsdb/.test(u.host)) return false;
   const F1 = [['Saudi Arabian Grand Prix Practice 1', 30]]
@@ -2132,6 +2141,23 @@ for (const [width, height] of [[1920, 1080], [1280, 720], [960, 540]]) {
   await ctx.close();
 }
 
+// ---- as on the TV (no addresses of the tests): a league, the markets and our photos ask nothing of a data host, and the page still shows
+{
+  const seen = [];
+  const ctx = await plainContext({ viewport: { width: 1920, height: 1080 } });
+  await ctx.route(/^https?:/, r => { seen.push(r.request().url()); return r.abort(); });
+  const p = await ctx.newPage();
+  const errors = [];
+  p.on('pageerror', e => errors.push(e.message));
+  await p.goto(page('tv.html') + '#gap=0&teams=136013&leagues=' + encodeURIComponent('Saudi-Arabian Pro League') + '&markets=tasi,btc&panel=matches');
+  await p.waitForTimeout(1500);
+  const bg = await p.evaluate(() => document.querySelector('.photo').style.backgroundImage);
+  check('as on the TV: no league file, market file, photo list or GitHub address asked for; a bundled photo shows',
+    !seen.some(u => /data-leagues|data-markets|photos\/|github/.test(u)) && /urtv\.invalid\/assets\/backgrounds\//.test(bg) && !errors.length,
+    seen.join(' ') + ' ' + bg + ' ' + errors.join(' '));
+  await ctx.close();
+}
+
 // ---- no league followed: nothing changes (no request for a league's file, the old title)
 {
   const seen = [];
@@ -2232,7 +2258,7 @@ for (const [width, height] of [[1920, 1080], [1280, 720], [960, 540]]) {
         const h = how(+u.slice(OWNU.length).replace('.jpg', ''));
         return h === 'fail' ? r.abort() : void setTimeout(() => r.fulfill({ contentType: 'image/jpeg', body: badgePng }).catch(() => {}), h);
       }
-      const i = u.indexOf('/master/'), rel = i > 0 ? u.slice(i + 8) : '';
+      const rel = u.startsWith('https://urtv.invalid/') ? u.slice(21) : '';
       if (/^(assets\/(backgrounds|fonts)|photos)\//.test(rel)) return r.fulfill({ path: path.join(ROOT, rel), headers: { 'Access-Control-Allow-Origin': '*' } });
       return r.abort();
     });
@@ -2507,7 +2533,7 @@ for (const [width, height] of [[1920, 1080], [1280, 720], [960, 540]]) {
   const hosts = [...new Set(asked.map(u => new URL(u).host))].sort();
   const forecast = asked.filter(u => /api\.open-meteo\.com\/v1\/forecast/.test(u));
   check('smart card: only the requests of the cards it shows (prayers, matches, the forecast with its hours), one forecast request',
-    hosts.every(h => ['api.aladhan.com', 'www.thesportsdb.com', 'api.open-meteo.com', 'raw.githubusercontent.com', 'api.coingecko.com', 'query1.finance.yahoo.com'].includes(h) || /thesportsdb\.com$/.test(h))
+    hosts.every(h => ['api.aladhan.com', 'www.thesportsdb.com', 'api.open-meteo.com', 'data.test', 'urtv.invalid', 'api.coingecko.com', 'query1.finance.yahoo.com'].includes(h) || /thesportsdb\.com$/.test(h))
     && forecast.length === 1 && /hourly=/.test(forecast[0]) && !asked.some(u => /air-quality|tvmaze|wikidata/.test(u)), asked.join(' '));
   await o.ctx.close();
 }
@@ -2988,7 +3014,7 @@ for (const panel of ['shows', 'prayers', 'forecast', 'hourly', 'prayerrow', 'nex
     const t = new Date().toISOString();
     const FILE = { updated: t, quotes: { '2222.SR': { p: 27.5, v: 27, c: [27, 27.2, 27.5], t }, 'AAPL': { p: 231, v: 230, c: [230, 231], t }, '^TASI.SR': { p: 11600, v: 11500, c: [], t } } };
     const o = await session('markets=tasi&mkstyle=prices&panel=stocks&stocks=2222,AAPL,1120', (r, u) => {
-      if (u.host === 'raw.githubusercontent.com' && u.pathname.endsWith('/data-markets/markets/markets.json')) return r.fulfill({ json: FILE, headers: hdr });
+      if (u.host === 'data.test' && u.pathname.endsWith('/data-markets/markets/markets.json')) return r.fulfill({ json: FILE, headers: hdr });
       if (/finance\.yahoo/.test(u.host)) return r.fulfill({ contentType: 'application/json', headers: hdr, body: yahoo(null, 90, 91) });
       return r.abort();
     });
@@ -3212,7 +3238,7 @@ for (const panel of ['shows', 'prayers', 'forecast', 'hourly', 'prayerrow', 'nex
 // ---- what the page keeps in localStorage is keyed by what it is for, and the old link-keyed copies are pruned at boot
 {
   const seed = { 'forecast:#city=old&lat=1': '[]', 'hourly:#x': '{}', 'stocks:#y': '{}', 'mk:#z': '{}', 'wx:#w': '{}',
-                 'forecast:20.000,30.000': '[{"date":"2026-10-22","code":1,"hi":30,"lo":20}]', 'snap6:#old1': '[]', 'snap6:#old2': '[]',
+                 'forecast:20.000,30.000': '[{"date":"2026-10-22","code":1,"hi":30,"lo":20}]', 'snap7:#old1': '[]', 'snap7:#old2': '[]',
                  'someone-elses-key': 'keep me', 'matchesOk': '5' };
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   await ctx.route(/^https?:/, r => r.abort());
@@ -3230,7 +3256,7 @@ for (const panel of ['shows', 'prayers', 'forecast', 'hourly', 'prayerrow', 'nex
   await p.waitForTimeout(500);
   check('storage: another link for the same city finds the saved forecast', await p.evaluate(() => FORECAST.length && FORECAST[0].hi) === 33);
   // the link-keyed snapshots: the newest six stay
-  await p.evaluate(() => { const now = Date.now(), seen = {}; for (let i = 0; i < 9; i++) { localStorage.setItem('snap6:#n' + i, '[]'); seen['snap6:#n' + i] = now - (i + 1) * 36e5; }
+  await p.evaluate(() => { const now = Date.now(), seen = {}; for (let i = 0; i < 9; i++) { localStorage.setItem('snap7:#n' + i, '[]'); seen['snap7:#n' + i] = now - (i + 1) * 36e5; }
     localStorage.setItem('lsSeen', JSON.stringify(seen)); localStorage.setItem('forecast:5.000,6.000', '[]'); const s2 = JSON.parse(localStorage.getItem('lsSeen')); s2['forecast:5.000,6.000'] = now - 15 * 864e5; localStorage.setItem('lsSeen', JSON.stringify(s2)); });
   await p.waitForTimeout(500);   // Chromium writes storage out a moment after the write; the page must not start before that
   // the copy for another city, 15 days unused, is put there at the start of every load from here on (not left to the browser's write-out, which
@@ -3240,7 +3266,7 @@ for (const panel of ['shows', 'prayers', 'forecast', 'hourly', 'prayerrow', 'nex
   await carry(p); await p.goto('about:blank'); await p.goto(page('tv.html') + '#gap=0&lat=21.5433&lon=39.1728&panel=hourly&cardstyle=dark1&teams=');   // (a new page: a changed #hash alone is no reload)
   await p.waitForTimeout(500);
   // the other copies, not counting this page's own: whether its own copy was written out before the boot pruned is the browser's timing
-  const after = await p.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('snap6:') && k !== LS.snap).length);
+  const after = await p.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('snap7:') && k !== LS.snap).length);
   let gone = await p.evaluate(() => localStorage.getItem('forecast:5.000,6.000'));
   // Chromium writes the storage out a moment after the page's own writes (the known flake of this file, see carry()): the pruning is idempotent,
   // so a boot that raced the write is followed by up to two more; a pruning that does not work leaves the key every time
@@ -3916,7 +3942,7 @@ const CARD_KINDS_TEST = ['shows','prayers','forecast','hourly','prayerrow','next
   await ctx.close();
 }
 
-// ---- the weather at the top left: the condition and the dust are two facts, and the source with the reading's age is a small line
+// ---- the weather at the top left: the condition and the dust are two facts; no source line (the owner wanted no «Open-Meteo»)
 {
   const NOW = new Date('2026-10-22T13:40:00Z');
   const wxNet = (pm, ageState) => r => {
@@ -3928,27 +3954,24 @@ const CARD_KINDS_TEST = ['shows','prayers','forecast','hourly','prayerrow','next
     return false;
   };
   const wxRead = p => p.evaluate(() => ({ d: document.getElementById('wx-desc').textContent, dust: document.getElementById('wx-dust').textContent,
-    src: document.getElementById('wx-src').textContent, line: document.querySelector('.wxline').innerText.replace(/\s+/g, ' ').trim() }));
+    src: !!document.getElementById('wx-src'), line: document.querySelector('.wxline').innerText.replace(/\s+/g, ' ').trim() }));
   for (const [pm, dust, why] of [[60, '', 'clean air: the condition alone'], [200, 'غبار', 'dust: beside the condition'], [450, 'غبار كثيف', 'heavy dust: beside the condition']]) {
     const { p, ctx, errors } = await open('tv.html', '', { net: wxNet(pm, {}), now: NOW });
     await p.waitForTimeout(600);
     const r = await wxRead(p);
     check(`weather ${why}`, !errors.length && r.d === 'غائم جزئياً' && r.dust === dust, JSON.stringify(r) + errors);
-    check(`weather ${pm}: the source and «الآن» under the city`, r.src === 'Open-Meteo · الآن', r.src);
+    check(`weather ${pm}: no source line under the city`, r.src === false, r.src);
     await ctx.close();
   }
-  {   // the age counts on, with no request; older than three hours it all goes
+  {   // older than three hours it all goes
     const { p, ctx } = await open('tv.html', '', { net: wxNet(0, {}), now: NOW });
     await p.waitForTimeout(600);
-    const at = min => p.evaluate(m => { WX.at = Date.now() - m * 60000; wxExpire(); wxSource(); }, min);   // the page's clock is fixed: the reading gets older instead
-    await at(15);
-    const a = await wxRead(p);
+    const at = min => p.evaluate(m => { WX.at = Date.now() - m * 60000; wxExpire(); }, min);   // the page's clock is fixed: the reading gets older instead
     await at(75);
     const b = await wxRead(p);
     await at(190);
     const c = await wxRead(p);
-    check('weather age: «قبل ١٥ د», then hours, then nothing once the reading is stale',
-      a.src === 'Open-Meteo · قبل ١٥ د' && /^Open-Meteo · قبل [٠-٩]+ س$/.test(b.src) && c.src === '' && c.d === '', JSON.stringify([a.src, b.src, c.src]));
+    check('weather: kept for hours, then nothing once the reading is stale', b.d === 'غائم جزئياً' && c.d === '', JSON.stringify([b.d, c.d]));
     await ctx.close();
   }
   for (const [w, h] of [[960, 540], [1280, 720], [1920, 1080]]) {
@@ -3959,9 +3982,9 @@ const CARD_KINDS_TEST = ['shows','prayers','forecast','hourly','prayerrow','next
         const b = s => document.querySelector(s).getBoundingClientRect(), m = b('.markets'), d = b('.dates'), c = b('.clock');
         const off = [...document.querySelectorAll('.markets *')].filter(e => { const x = e.getBoundingClientRect(); return x.width && (x.left < -1 || x.right > innerWidth + 1); }).map(e => e.id || e.className);
         return { off, overDates: m.right > d.left - 8 && m.bottom > d.top && m.top < d.bottom, overClock: m.bottom > c.top && m.left < c.right && m.right > c.left && m.top < c.bottom,
-          src: document.getElementById('wx-src').getBoundingClientRect().height > 0, line: document.querySelector('.wxline').innerText.replace(/\s+/g, ' ').trim() };
+          line: document.querySelector('.wxline').innerText.replace(/\s+/g, ' ').trim() };
       });
-      check(`weather with dust and its source at ${w}x${h} (${hash || 'default'}): fits, clear of the date and the clock`, !r.off.length && !r.overDates && !r.overClock && r.src && /غائم جزئياً/.test(r.line) && /غبار كثيف/.test(r.line), JSON.stringify(r));
+      check(`weather with dust at ${w}x${h} (${hash || 'default'}): fits, clear of the date and the clock`, !r.off.length && !r.overDates && !r.overClock && /غائم جزئياً/.test(r.line) && /غبار كثيف/.test(r.line), JSON.stringify(r));
       if (process.env.SHOTS && w === 1920 && hash === '') await p.screenshot({ path: path.join(process.env.SHOTS, 'weather-dust-source.png'), clip: { x: 0, y: 0, width: 700, height: 220 } });
       await ctx.close();
     }

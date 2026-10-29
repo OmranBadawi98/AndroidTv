@@ -20,7 +20,7 @@ import java.util.Locale;
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.CITIES
  *   am broadcast -n sa.urtv.screensaver/.SaverReceiver -a sa.urtv.screensaver.SET
  *       [--es city 'الرس'] [--es lat 25.86 --es lon 43.49 --es tz Asia/Kuwait]   (tz is needed for a place that is not in the list) [--es teams '136013:Al-Hilal,150643:Al-Zulfi']
- *       [--es panel prayers] [--es home_panel prayers,hourly,verse|none] [--es greeting on|off] [--es adhanbar on|off] [--es yearstrip on|off] [--es minrating 7] [--es genres Drama,Comedy] [--es langs English]
+ *       [--es panel prayers] [--es home_panel prayers,hourly,verse|none] [--es greeting on|off] [--es wifipill on|off] [--es adhanbar on|off] [--es yearstrip on|off] [--es minrating 7] [--es genres Drama,Comedy] [--es langs English]
  *       [--es photos 30] [--es idle 10] [--es digits hindi|latin] [--es hijrioffset -2..2] [--es clock24 on|off]
  *       [--es cardstyle current|dark1|glass1|dark3|glass3] [--es national auto|off]
  *       [--es markets tasi,gold,btc] [--es mkstyle arrows|prices] [--es mkbar on|off] [--es clocksize large|medium|small] [--es stocks 2222,1120,AAPL]
@@ -41,6 +41,7 @@ import java.util.Locale;
  * mode = mix (they join ours, as always) or only.
  * greeting = the greeting and the weather line above the home screen's clock (on, the default, or off: the plain good-morning).
  * yearstrip = the slim year strip under the screensaver's clock (on, or off, the default).
+ * wifipill = the «واي فاي» pill in the home screen's top row (on, or off, the default).
  * slot = what the bottom-left slot shows (Prefs.SLOTS). countdown = the date (YYYY-MM-DD) slot=countdown counts down to, or
  * "clear"; cdname = its name (up to 40 characters).
  * national = auto (as always from now: the quiet green look on National Day, 21-25 September, and Founding Day, 20-24 February) or off.
@@ -77,7 +78,7 @@ public class SaverReceiver extends BroadcastReceiver {
                 return;
             }
             case "sa.urtv.screensaver.UPDATE": {
-                final PendingResult pending = goAsync();   // a download: off the main thread
+                final PendingResult pending = goAsync();   // off the main thread (Updater.check no longer downloads)
                 final Context app = c.getApplicationContext();
                 new Thread(() -> {
                     pending.setResultData("update: " + Updater.check(app, true));
@@ -200,6 +201,9 @@ public class SaverReceiver extends BroadcastReceiver {
         String greeting = i.getStringExtra("greeting");
         if (greeting != null && !"on".equals(greeting) && !"off".equals(greeting))
             return "error: greeting is one of on off";
+        String wifiPill = i.getStringExtra("wifipill");
+        if (wifiPill != null && !"on".equals(wifiPill) && !"off".equals(wifiPill))
+            return "error: wifipill is one of on off";
         String rating = i.getStringExtra("minrating");
         if (rating != null && !Arrays.asList(Prefs.MIN_RATINGS).contains(rating))
             return "error: minrating is one of " + Prefs.join(Arrays.asList(Prefs.MIN_RATINGS), " ");
@@ -293,6 +297,7 @@ public class SaverReceiver extends BroadcastReceiver {
         if (panel != null) p.setPanel(panel);
         if (homeCards != null) p.setHomePanels(homeCards);
         if (greeting != null) p.setGreeting("on".equals(greeting));
+        if (wifiPill != null) p.setWifiPill("on".equals(wifiPill));
         if (adhanBar != null) p.setAdhanBar("on".equals(adhanBar));
         if (yearStrip != null) p.setYearStrip("on".equals(yearStrip));
         if (prayerMethod != null) p.setPrayerMethod(PrayerMethod.parse(prayerMethod));
@@ -415,6 +420,7 @@ public class SaverReceiver extends BroadcastReceiver {
             + "\nteams: " + Prefs.join(p.teams(), ", ")
             + "\npanel: " + p.panel() + "\nhome_panel: " + p.homePanel()
             + "\ngreeting: " + (p.greeting() ? "on" : "off")
+            + "\nwifipill: " + (p.wifiPill() ? "on" : "off")
             + "\nadhanbar: " + (p.adhanBar() ? "on" : "off")
             + "\nyearstrip: " + (p.yearStrip() ? "on" : "off")
             + "\nprayermethod: " + p.prayerMethod()

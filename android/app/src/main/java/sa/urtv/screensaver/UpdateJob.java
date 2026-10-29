@@ -10,8 +10,7 @@ import android.content.Context;
 /**
  * Wakes the app's process, and does nothing else. The job is persisted, so after a reboot the system
  * itself starts the process again, which some TVs (TCL) need for the first screensaver to start.
- * The page and version check no longer runs here: it runs when the screensaver starts
- * (Updater.checkIfDue), so the TV does no network work while it is idle.
+ * There is no page or version check on this TV (Updater): the page comes with the APK.
  */
 public class UpdateJob extends JobService {
     private static final int ID = 1;

@@ -14,8 +14,6 @@ android {
         // the same number as the home app and as the release (v3.N)
         versionCode((System.getenv('GITHUB_RUN_NUMBER') ?: '1') as int)
         versionName "3.${System.getenv('GITHUB_RUN_NUMBER') ?: '0'}"
-        // the branch the page, fonts and photos are fetched from: CI passes the one it builds, a local build follows master
-        buildConfigField "String", "BRANCH", "\"${System.getenv('URTV_BRANCH') ?: 'master'}\""
     }
 
     buildFeatures {

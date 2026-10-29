@@ -29,11 +29,11 @@ def check(name, ok, detail=""):
 UTC = datetime.timezone.utc
 syms = mp.symbols()
 page = (ROOT / "src/template.html").read_text(encoding="utf-8")
-check("symbols: every market of the page's list", {"^TASI.SR", "2222.SR", "^GSPC", "GC=F", "SI=F", "BTC-USD", "XRP-USD"} <= set(syms), sorted(syms)[:10])
+check("symbols: every market of the page's list", {"^TASI.SR", "2222.SR", "^GSPC", "SI=F", "BTC-USD", "XRP-USD"} <= set(syms) and "GC=F" not in syms, sorted(syms)[:10])
 check("symbols: every Tadawul code of the page's table, as CODE.SR",
       all(c + ".SR" in syms for c in re.findall(r"'(\d{4})'\s*:", re.search(r"const TADAWUL = \{(.*?)\n\};", page, re.S).group(1))))
 check("symbols: the common US tickers", {"AAPL", "NVDA", "TSLA"} <= set(syms))
-check("symbols: kinds", syms["2222.SR"] == "sa" and syms["AAPL"] == "us" and syms["BTC-USD"] == "always" and syms["GC=F"] == "always")
+check("symbols: kinds", syms["2222.SR"] == "sa" and syms["AAPL"] == "us" and syms["BTC-USD"] == "always" and syms["SI=F"] == "always")
 
 # hours: Tadawul Sun-Thu 10-15 Riyadh; the US 9:30-16:00 New York time (summer 13:30-20:00 UTC, winter 14:30-21:00 UTC)
 def at(y, m, d, h, mi=0):

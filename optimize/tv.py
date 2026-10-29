@@ -209,8 +209,12 @@ def new_dev(timeout):
     return AdbDeviceTcp(HOST, PORT, default_transport_timeout_s=timeout)
 
 
+# 48 KB: a TCL G07 (Android 11) stops answering ADB for minutes on a single 96 KB command written to a file (64 and 80 KB go through)
+PLAIN_CHUNK = 48_000
+
+
 def upload_chunk():
-    return wireless.AdbCli.chunk if "TV_PORT" not in os.environ and wireless.state_for(HOST) else 96_000
+    return wireless.AdbCli.chunk if "TV_PORT" not in os.environ and wireless.state_for(HOST) else PLAIN_CHUNK
 
 
 def signer():

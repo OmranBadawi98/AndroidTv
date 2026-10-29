@@ -45,7 +45,7 @@ def run(webview_line, takes="yes"):
     for f, body in (("py", STUB_PY), ("curl", "#!/bin/sh\nwhile [ $# -gt 0 ]; do [ \"$1\" = -o ] && : > \"$2\"; shift; done\n"), ("sleep", "#!/bin/sh\nexit 0\n")):
         (bin_ / f).write_text(body); (bin_ / f).chmod(0o755)
     (t / "log").write_text("")
-    env = dict(os.environ, T=str(t), PATH=f"{bin_}:{os.environ['PATH']}", PY=str(bin_ / "py"), WEBVIEW=webview_line, TAKES=takes)
+    env = dict(os.environ, APK_URL="https://apk.invalid", T=str(t), PATH=f"{bin_}:{os.environ['PATH']}", PY=str(bin_ / "py"), WEBVIEW=webview_line, TAKES=takes)
     r = subprocess.run(["bash", str(tree / "optimize" / "install.sh"), "saver"], env=env, capture_output=True, text=True)
     return r.returncode, r.stdout + r.stderr, (t / "log").read_text().split()
 

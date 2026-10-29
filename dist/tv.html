@@ -5,17 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- the build: UTC time (YYYYMMDDHHMMSS) of the newest commit of the page's sources, put in by src/build.py. The app loads the page with the newer stamp (its own
      copy or a downloaded one), never by file time, and does not keep a download whose stamp is older than its own (Updater, PageStamp). -->
-<meta name="urtv-build" content="20261026150216">
+<meta name="urtv-build" content="3583">
 <title>شاشة تلفزيونك</title>
 <style>
-  @font-face{font-family:'Thmanyah';font-weight:300;font-style:normal;font-display:block;src:url("https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/fonts/Thmanyah-Light.woff2") format("woff2")}
-  @font-face{font-family:'Thmanyah';font-weight:400;font-style:normal;font-display:block;src:url("https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/fonts/Thmanyah-Regular.woff2") format("woff2")}
-  @font-face{font-family:'Thmanyah';font-weight:500;font-style:normal;font-display:block;src:url("https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/fonts/Thmanyah-Medium.woff2") format("woff2")}
+  @font-face{font-family:'Thmanyah';font-weight:300;font-style:normal;font-display:block;src:url("https://urtv.invalid/assets/fonts/Thmanyah-Light.woff2") format("woff2"),url("https://urtv.invalid/assets/plex/IBMPlexSansArabic-Light.ttf") format("truetype")}
+  @font-face{font-family:'Thmanyah';font-weight:400;font-style:normal;font-display:block;src:url("https://urtv.invalid/assets/fonts/Thmanyah-Regular.woff2") format("woff2"),url("https://urtv.invalid/assets/plex/IBMPlexSansArabic-Regular.ttf") format("truetype")}
+  @font-face{font-family:'Thmanyah';font-weight:500;font-style:normal;font-display:block;src:url("https://urtv.invalid/assets/fonts/Thmanyah-Medium.woff2") format("woff2"),url("https://urtv.invalid/assets/plex/IBMPlexSansArabic-Medium.ttf") format("truetype")}
   /* ﷺ and ﴿﴾ only (2 KB subset of Noto Naskh Arabic, OFL): Thmanyah has no glyph for them */
   @font-face{font-family:'NotoMarks';font-style:normal;font-weight:400;src:url("data:font/woff2;base64,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") format("woff2")}
   /* the Quran text only (verse of the day, Quranic adhkar), with the KFGQPC Uthmani text made for it: assets/fonts/UthmanicHafs-NOTICE.txt */
-  @font-face{font-family:'UthmanicHafs';font-weight:400;font-style:normal;font-display:block;src:url("https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/fonts/UthmanicHafs-v30.woff2") format("woff2")}
-  @font-face{font-family:'ThmanyahDisplay';font-weight:700;font-style:normal;font-display:block;src:url("https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/fonts/ThmanyahDisplay-Bold.woff2") format("woff2")}
+  @font-face{font-family:'UthmanicHafs';font-weight:400;font-style:normal;font-display:block;src:url("https://urtv.invalid/assets/fonts/UthmanicHafs-v30.woff2") format("woff2")}
+  @font-face{font-family:'ThmanyahDisplay';font-weight:700;font-style:normal;font-display:block;src:url("https://urtv.invalid/assets/fonts/ThmanyahDisplay-Bold.woff2") format("woff2"),url("https://urtv.invalid/assets/plex/IBMPlexSansArabic-Light.ttf") format("truetype")}
 
   :root{
     --sand:#F6EFE0;
@@ -38,6 +38,10 @@
   @keyframes reveal{to{opacity:1}}
   /* card-only mode for the launcher */
   html.widget,html.widget body{background:transparent}
+  /* #homebg=1: the whole screensaver as the launcher's home screen, over the launcher's own photo: no photo, credit or night dimmer here */
+  html.homebg,html.homebg body{background:transparent}
+  html.homebg .photo,html.homebg #credit,html.homebg .dimmer,html.homebg .grain{display:none}
+  html.homebg .clockwrap .subline{display:none}   /* the owner wanted no «بتوقيت المدينة · حساب …» on the home screen */
   html.widget .photo,html.widget .veil,html.widget .grain,html.widget .top-veil,html.widget .bottom-veil,
   html.widget .dimmer,html.widget #credit,html.widget .top,html.widget .clockwrap,html.widget .bottom{display:none}
   html.widget .stage{height:auto;padding:0;display:block;transition:none}
@@ -378,13 +382,13 @@
     display:flex;align-items:baseline;justify-content:center;direction:ltr;
     font-family:'ThmanyahDisplay','Thmanyah',serif;
     font-weight:700;
-    font-size:clamp(120px,min(17vw,31vh),345px);line-height:.92;letter-spacing:.022em;
+    font-size:clamp(110px,min(15.6vw,28.5vh),317px);line-height:.92;letter-spacing:.022em;
     color:#FFFDF6;font-variant-numeric:tabular-nums;
     text-shadow:0 4px 70px rgba(0,0,0,.65), 0 0 130px rgba(255,236,190,.12);
   }
   /* «حجم الساعة» (#clocksize=): large is the clock above; the others only scale its font (the sub line and the cards keep their sizes) */
-  html.ck-medium .clock{font-size:clamp(96px,min(13.6vw,24.8vh),276px)}
-  html.ck-small .clock{font-size:clamp(74px,min(10.5vw,19vh),214px)}
+  html.ck-medium .clock{font-size:clamp(88px,min(12.5vw,22.8vh),254px)}
+  html.ck-small .clock{font-size:clamp(68px,min(9.7vw,17.5vh),197px)}
   .clock .d{unicode-bidi:isolate}
   .clock .d i{font-style:normal}
   .clock .d i + i{margin-left:var(--digit-gap,.09em)}
@@ -473,8 +477,6 @@
     font-variant-numeric:tabular-nums}
   .wxdust{color:#E8B86A;font-size:.82em}   /* the dust, beside the condition and not instead of it */
   .wxdust:not(:empty)::before{content:'·';margin-inline-end:.5em;color:rgba(214,175,107,.7)}
-  .wxsrc{margin-top:.3vh;font-size:clamp(10px,.86vw,17px);font-weight:300;color:var(--dim);opacity:.8;white-space:nowrap}
-  .wxsrc:empty{display:none}
   .wxsub{margin-top:.55vh;font-size:clamp(12px,1.06vw,21px);font-weight:300;color:var(--dim);white-space:nowrap}
   .wxr:not(:empty)::before{content:'  ·  ';white-space:pre;color:rgba(214,175,107,.7)}
   .wxt:empty,.wxd:empty,.wxr:empty,.wxdust:empty{display:none}
@@ -500,7 +502,7 @@
     background:linear-gradient(90deg,rgba(var(--gold-rgb),0),rgba(var(--gold-rgb),.34) 30%,rgba(var(--gold-rgb),.34) 70%,rgba(var(--gold-rgb),0));
     color:var(--gold-hi);font-size:clamp(11px,1.1vw,21px);font-weight:500;letter-spacing:.04em;white-space:nowrap;pointer-events:none}
   .adbar[hidden]{display:none}
-  html.widget .adbar{display:none}
+  html.widget .adbar,html.homebg .adbar{display:none}   /* the home screen has its own bar (AdhanBar): one, not two */
   .dimmer{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30;transition:opacity 6s linear}
   .stage{transition:transform 3s ease}
   .sc{color:var(--gold-3);letter-spacing:.02em}
@@ -544,7 +546,6 @@
     <div class="markets">
       <div class="wxline"><span class="wxt" id="wx-temp"></span><span class="wxd" id="wx-desc"></span><span class="wxdust" id="wx-dust"></span></div>
       <div class="wxsub"><span id="wx-city">الرياض</span><span class="wxr" id="wx-range"></span></div>
-      <div class="wxsrc" id="wx-src"></div>
       <div class="rule l"></div>
       <div class="mk">
         <span class="m"><span>تاسي</span><span id="tasi-chg" class="delta" hidden></span></span>
@@ -603,11 +604,11 @@
 <script>
 // daily background: one photo per Riyadh day, deterministic
 const BGS = [
-  {u:"https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/backgrounds/9hWJs7iblh8.jpg", c:"NEOM · Unsplash", d:0.9},
-  {u:"https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/backgrounds/XDtzu1D2P8c.jpg", c:"NEOM · Unsplash", d:0.84},
-  {u:"https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/backgrounds/t3dlLOhdEzs.jpg", c:"NEOM · Unsplash", d:0.99},
-  {u:"https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/backgrounds/LAj90eAXOZA.jpg", c:"NEOM · Unsplash", d:0.96},
-  {u:"https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/backgrounds/f5ZB0LHwi0s.jpg", c:"Hala AlGhanim · Unsplash", d:0.88}
+  {u:"https://urtv.invalid/assets/backgrounds/9hWJs7iblh8.jpg", c:"NEOM · Unsplash", d:0.9},
+  {u:"https://urtv.invalid/assets/backgrounds/XDtzu1D2P8c.jpg", c:"NEOM · Unsplash", d:0.84},
+  {u:"https://urtv.invalid/assets/backgrounds/t3dlLOhdEzs.jpg", c:"NEOM · Unsplash", d:0.99},
+  {u:"https://urtv.invalid/assets/backgrounds/LAj90eAXOZA.jpg", c:"NEOM · Unsplash", d:0.96},
+  {u:"https://urtv.invalid/assets/backgrounds/f5ZB0LHwi0s.jpg", c:"Hala AlGhanim · Unsplash", d:0.88}
 ];
 // the app passes the chosen city in the URL fragment: #city=..&lat=..&lon=..&tz=..
 const _Q = new URLSearchParams((location.hash || '').replace(/^#/, ''));
@@ -707,6 +708,8 @@ const CONFIG = {
   cityNote: _Q.get('citynote') === '1' && _Q.get('widget') !== '1',
   // #widget=1: only the cards, on a transparent page (the launcher's home screen shows them)
   widget: _Q.get('widget') === '1',
+  // #homebg=1: the whole page as the launcher's home screen, over its photo (the launcher keeps the photo and the top bar)
+  homeBg: _Q.get('homebg') === '1' && _Q.get('widget') !== '1',
 };
 // The cards on this page: the screensaver's one (#panel=); the launcher's up to three (#home_panel=a,b,c, none or empty = no card;
 // an older launcher sends the one card as #panel=). Each kind once, in order.
@@ -743,7 +746,7 @@ const LS = {
   stocks: 'stocks:' + CONFIG.stocks.slice().sort().join(','),
   mk: 'mk:' + CONFIG.markets.join(','),   // the on/off switch is not in the key: the prices are the same
   matches: 'matchesOk:' + CONFIG.teamIds.join(',') + '|' + CONFIG.leagues.join(','),
-  snap: 'snap6:' + snapLink(),
+  snap: 'snap7:' + snapLink(),
 };
 
 // every number on the screen goes through ar() or a formatter built on NU, so CONFIG.digits decides them all
@@ -1436,13 +1439,16 @@ function matchSlot(id, now, shown){
 // branch data-leagues); the page downloads one file per followed league every 30 minutes and no more: that is the
 // whole cost of a league, however many clubs it has. A game in progress is refreshed by lookupevent.php like a followed
 // team's (loadLive), at most LEAGUE_LIVE_MAX of them at a time.
-const LEAGUE_BASE = 'https://raw.githubusercontent.com/tshi-dev/UrTV/data-leagues/leagues/';
+// Off on this TV: the league files lived on another owner's GitHub, and nothing is fetched from there. Followed teams still come
+// from TheSportsDB itself. Nothing on the TV sets self.URTV_LEAGUE_BASE; the tests give their own (tests/page.test.mjs).
+const LEAGUE_BASE = self.URTV_LEAGUE_BASE || '';
 const LEAGUE_LIVE_MAX = 6;
 const leagueSlug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');   // team_ids.slug()
 let LEAGUE_DATA = (()=>{ try{ return JSON.parse(localStorage.getItem('leagueData') || '{}') || {}; }catch(e){ return {}; } })();   // name -> its file
 const STALE_ASK_H = 6, STALE_ASKED = new Set();   // a past game with no result: asked for once, 6 h after its kick-off
 let LIVE_PATCH = {};   // idEvent -> {at, ev}: lookupevent's newer word on a game, used while newer than the league's file
 async function loadLeagues(){
+  if(!LEAGUE_BASE) return 0;
   let got = 0;
   await Promise.all(CONFIG.leagues.map(async name => {
     try{
@@ -1820,20 +1826,21 @@ const loadMatches = guarded('matches', async function(){
 });
 
 // what the top-left can show: Yahoo symbol or CoinGecko id, decimals for the price, unit after it, and for
-// gold and silver the factor from USD per troy ounce to riyals per gram (3.75 riyals to the dollar, 31.1035 g)
+// silver the factor from USD per troy ounce to riyals per gram (3.75 riyals to the dollar, 31.1035 g). Gold is the
+// 24K price per gram in dirhams that Dubai City of Gold publishes (dcg: the karat), asked every minute (loadGold)
 const GRAM = 3.75 / 31.1035;
 const MARKETS = {
   tasi:   {name:'تاسي',     sym:'^TASI.SR', dec:0},
   aramco: {name:'أرامكو',   sym:'2222.SR',  dec:2, unit:'ر.س'},
   spx:    {name:'S&P 500',  sym:'^GSPC',    dec:0},
   btc:    {name:'بيتكوين',  cg:'bitcoin',   dec:0, unit:'$'},
-  gold:   {name:'الذهب',    sym:'GC=F',     dec:2, unit:'ر.س', mul:GRAM},
+  gold:   {name:'الذهب',    dcg:'24K',      dec:2, unit:'د.إ'},
   silver: {name:'الفضة',    sym:'SI=F',     dec:2, unit:'ر.س', mul:GRAM},
   xrp:    {name:'ريبل',     cg:'ripple',    dec:2, unit:'$'},
 };
 const CG_YAHOO = {bitcoin:'BTC-USD', ripple:'XRP-USD'};   // the file CI keeps holds crypto under Yahoo's pair
 const TICKERS = CONFIG.markets.map(k => Object.assign({key:k, chg:k + '-chg', px:k + '-px'}, MARKETS[k]))
-  .map(t => Object.assign(t, {fk: t.sym || CG_YAHOO[t.cg]}));
+  .map(t => Object.assign(t, {fk: t.sym || CG_YAHOO[t.cg] || 'DCG:' + t.dcg}));
 const PRICES = CONFIG.mkStyle === 'prices';
 
 // the default list with arrows is the markup in the page; anything else is made here, before the saved copy is put back
@@ -2014,10 +2021,11 @@ async function fetchT(url, ms){
 
 // ---- prices. First the file CI keeps (.github/tools/market_prices.py, branch data-markets): one download holds every market and the
 // common stocks, so the TVs do not each ask Yahoo. A symbol that is not in it, or a file older than 3 hours, is asked of Yahoo itself.
-const MARKET_URL = 'https://raw.githubusercontent.com/tshi-dev/UrTV/data-markets/markets/markets.json';
+const MARKET_URL = self.URTV_MARKET_URL || '';   // off on this TV (it was on another owner's GitHub): every price is asked of Yahoo itself
 const MARKET_TRUST_MS = 3*3600000;
 let MARKET_FILE = null;   // {updated, quotes: {symbol: {p, v, c, t}}}
 async function loadMarketFile(){
+  if(!MARKET_URL) return;
   try{
     const r = await fetchT(MARKET_URL, 12000);
     if(r.ok){ const j = await r.json(); if(j && j.quotes && Date.parse(j.updated)) MARKET_FILE = j; }
@@ -2097,7 +2105,7 @@ const loadMarkets = guarded('markets', async function(){
     j.intra = j.intra || intra;
     return j;
   };
-  if(WITH_LINE) TICKERS.forEach(t => job(t.fk, t.cg, false).tk.push(t));
+  if(WITH_LINE) TICKERS.filter(t => !t.dcg).forEach(t => job(t.fk, t.cg, false).tk.push(t));   // gold: loadGold, every minute
   if(USES('stocks')) CONFIG.stocks.forEach(k => job(isSA(k) ? k + '.SR' : k, null, true).sk.push(k));
   if(!jobs.size) return;
   await loadMarketFile();
@@ -2123,6 +2131,35 @@ const loadMarkets = guarded('markets', async function(){
   if(WITH_LINE){ saveMarkets(); paintMkUp(); if(CONFIG.slot === 'markets') renderSlot(); }
 });
 const loadStocks = loadMarkets, loadTickers = loadMarkets;
+
+// Gold in dirhams per gram from dubaicityofgold.com (its page lists «24K Gold … AED 488.00»; the app's page may read it directly).
+// The change is against the last price of the day before, kept here, so the arrow says up or down since yesterday.
+const DCG_URL = 'https://dubaicityofgold.com/';
+async function dcgPrice(karat){
+  const r = await fetchT(DCG_URL, 15000);
+  if(!r.ok) throw 0;
+  const html = await r.text();
+  const m = html.match(new RegExp(karat + '\\s*Gold\\s*</span>\\s*<span[^>]*>\\s*AED\\s*([0-9][0-9,]*\\.?[0-9]*)', 'i'));
+  const p = m ? parseFloat(m[1].replace(/,/g, '')) : NaN;
+  if(!(p > 0 && p < 100000)) throw 0;
+  return p;
+}
+const loadGold = guarded('gold', async function(){
+  const gold = WITH_LINE ? TICKERS.filter(t => t.dcg) : [];
+  for(const t of gold){
+    let p;
+    try{ p = await dcgPrice(t.dcg); }
+    catch(e){ if(MK_LAST[t.key]) MK_LAST[t.key].bad = 1; else if(!document.getElementById(t.chg).textContent) paintDir(t, null); continue; }
+    const today = new Date().toDateString();
+    let d = {};
+    try{ d = JSON.parse(localStorage.getItem('dcg-' + t.dcg) || '{}') || {}; }catch(e){}
+    if(d.day !== today) d = {day: today, base: d.last || p, last: p};
+    d.last = p;
+    try{ localStorage.setItem('dcg-' + t.dcg, JSON.stringify(d)); }catch(e){}
+    paintMarket(t, p, d.base ? (p - d.base) / d.base * 100 : null, Date.now());
+  }
+  if(gold.length){ saveMarkets(); paintMkUp(); if(CONFIG.slot === 'markets') renderSlot(); }
+});
 
 const SKIP_TYPES = ['News','Talk Show','Sports','Game Show'];
 let WEEK_OK_AT = 0, WEEK_FAIL_AT = 0;   // the last refresh that kept its answer, and the last one that failed (0 = never)
@@ -2945,17 +2982,7 @@ try{ WX = Object.assign(WX, JSON.parse(localStorage.getItem(LS.wx) || '{}')); }c
 const saveWx = () => { try{ localStorage.setItem(LS.wx, JSON.stringify(WX)); }catch(e){} };
 function wxExpire(){
   if(Date.now() - WX.at < WX_STALE_MS) return;
-  ['wx-temp', 'wx-desc', 'wx-dust', 'wx-range', 'wx-src'].forEach(id => { const el = document.getElementById(id); if(el) setText(el, ''); });
-}
-// «Open-Meteo · قبل ١٥ د»: where the weather comes from and how old the reading is (kept up to date with the clock, no request)
-function wxAgeText(ms){
-  const m = Math.floor(ms / 60000);
-  return m < 1 ? 'الآن' : m < 60 ? 'قبل ' + ar(m) + ' د' : 'قبل ' + ar(Math.floor(m / 60)) + ' س';
-}
-function wxSource(){
-  const el = document.getElementById('wx-src');
-  if(!el) return;
-  setText(el, WX.at && Date.now() - WX.at < WX_STALE_MS ? 'Open-Meteo · ' + wxAgeText(Date.now() - WX.at) : '');
+  ['wx-temp', 'wx-desc', 'wx-dust', 'wx-range'].forEach(id => { const el = document.getElementById(id); if(el) setText(el, ''); });
 }
 async function loadWeather(){
   const q = `latitude=${CONFIG.latitude}&longitude=${CONFIG.longitude}&timezone=${encodeURIComponent(CONFIG.timezone)}`;
@@ -2971,7 +2998,6 @@ async function loadWeather(){
     setText(document.getElementById('wx-temp'), ar(Math.round(j.current.temperature_2m)) + '°');
     const d = document.getElementById('wx-desc');
     setText(d, WX_CODES[j.current.weather_code] || '');
-    wxSource();
     const hi = j.daily && j.daily.temperature_2m_max && j.daily.temperature_2m_max[0];
     const lo = j.daily && j.daily.temperature_2m_min && j.daily.temperature_2m_min[0];
     setText(document.getElementById('wx-range'),
@@ -3036,8 +3062,8 @@ function pixelShift(){
 
 // Background photos: the hosted set in photos/ (photos/index.json in the repo). A hosted photo is used only
 // once it has loaded; offline, or if it fails, a bundled one is shown, so the screen is never empty.
-const PHOTO_BASE = 'https://raw.githubusercontent.com/tshi-dev/UrTV/master/photos/';
-let REMOTE_BGS = (()=>{ try{ return JSON.parse(localStorage.getItem('photoIndex') || '[]'); }catch(e){ return []; } })();
+const PHOTO_BASE = self.URTV_PHOTO_BASE || '';   // off on this TV (the hosted set was on another owner's GitHub): the bundled photos rotate
+let REMOTE_BGS = !PHOTO_BASE ? [] : (()=>{ try{ return JSON.parse(localStorage.getItem('photoIndex') || '[]'); }catch(e){ return []; } })();
 
 // The owner's own photos: the app answers OWN_BASE N.jpg (1..CONFIG.own) from its own folder, never from the network.
 const OWN_BASE = 'https://own.urtv.invalid/';
@@ -3045,7 +3071,7 @@ const OWN_ONLY = () => CONFIG.own > 0 && CONFIG.ownMode === 'only';
 const ownPhotos = () => Array.from({length: CONFIG.own}, (_, k) => ({url: OWN_BASE + (k + 1) + '.jpg', b: {}}));   // no credit: they are not ours
 
 async function loadPhotoIndex(){
-  if(OWN_ONLY()) return;   // nothing of ours is shown, so nothing is fetched
+  if(OWN_ONLY() || !PHOTO_BASE) return;   // nothing of ours is shown, so nothing is fetched
   try{
     const r = await fetchT(PHOTO_BASE + 'index.json', 15000);
     if(!r.ok) return;
@@ -3227,7 +3253,7 @@ function applyBackground(force){
 }
 
 // Last painted panels, shown at once on the next start while fresh data loads.
-const SNAP_KEY = LS.snap;   // 'snap6:' + the link; bump when the panels' markup changes
+const SNAP_KEY = LS.snap;   // 'snap7:' + the link (7: no «Open-Meteo» line in .markets); bump when the panels' markup changes
 const SNAP_SEL = ['.markets', '#match-row'];
 let SNAP_LAST = null;   // what is stored now: the panels rarely change, so most saves have nothing to write
 const noCrestData = h => (h || '').replace(/ src="data:[^"]*"/g, '');   // the crests are kept apart
@@ -3284,10 +3310,11 @@ function pruneStorage(){
       if(!k || mine.has(k)) continue;
       const fam = LS_FAMILIES.find(f => k.startsWith(f));
       if(fam && k.charAt(fam.length) === '#'){ localStorage.removeItem(k); delete seen[k]; continue; }   // keyed by a whole link: the old way
-      if(fam || k.startsWith('snap6:')){
+      if(/^snap\d+:/.test(k) && !k.startsWith('snap7:')){ localStorage.removeItem(k); delete seen[k]; continue; }   // an older markup: never shown again
+      if(fam || k.startsWith('snap7:')){
         if(!seen[k]) seen[k] = now;
         if(now - seen[k] > LS_IDLE_MS){ localStorage.removeItem(k); delete seen[k]; }
-        else if(k.startsWith('snap6:')) snaps.push(k);
+        else if(k.startsWith('snap7:')) snaps.push(k);
       }
     }
     snaps.concat(mine.has(LS.snap) ? [LS.snap] : []).sort((a, b) => (seen[b] || 0) - (seen[a] || 0)).slice(LS_SNAPS).forEach(k => {
@@ -3319,6 +3346,7 @@ function nowPlayingTick(){
 function boot(){
   pruneStorage();
   if(CONFIG.widget){ bootWidget(); return; }
+  if(CONFIG.homeBg) document.documentElement.classList.add('homebg');
   buildCards();
   if(document.fonts) document.fonts.ready.then(() => {   // widths change once the fonts are in
     fitYearStrip();
@@ -3332,7 +3360,7 @@ function boot(){
   if(CONFIG.clockSize !== 'large') document.documentElement.classList.add('ck-' + CONFIG.clockSize);
   buildMarkets();
   restoreSnap();
-  paintMkUp(); wxExpire(); wxSource();
+  paintMkUp(); wxExpire();
   setTimeout(saveSnap, 15*1000);   // the dream can be killed before pagehide
   setInterval(saveSnap, 60*1000);
   addEventListener('pagehide', saveSnap);
@@ -3348,10 +3376,13 @@ function boot(){
   }
   document.title = 'شاشة تلفزيونك';
   applyBackground(true);
-  loadPhotoIndex().then(() => applyBackground(true));
-  setInterval(() => applyBackground(false), 60*1000);
+  if(!CONFIG.homeBg){   // the home screen shows its own photo behind the page
+    loadPhotoIndex().then(() => applyBackground(true));
+    setInterval(() => applyBackground(false), 60*1000);
+  }
   tickClock(); tickDates(); tickOccasion(); renderSlot();
   loadMarkets();
+  loadGold();
   renderPanel(false, ...CARD_KINDS.filter(k => k !== 'shows'));   // shows: its own data arrives with prayers, weather, matches
   if(NEEDS_MATCHES) loadMatches();
   loadPrayers(); if(USES('shows')) loadWeek(); loadWeather();
@@ -3361,7 +3392,7 @@ function boot(){
   setInterval(nowPlayingTick, 60*1000);
   setInterval(adhanLiveTick, 3000);
   setInterval(tickClock, 1000);
-  setInterval(()=>{ tickDates(); tickPrayer(); tickOccasion(); wxExpire(); wxSource(); if(!SLOT_MATCHES) renderSlot(); }, 15000);
+  setInterval(()=>{ tickDates(); tickPrayer(); tickOccasion(); wxExpire(); if(!SLOT_MATCHES) renderSlot(); }, 15000);
   if(SLOT_MATCHES){   // the matches timers run only while the slot shows matches
     setInterval(() => renderMatches(false), 60000);
     // 15 s a page (two games), 10 s once a league makes more than 3 pages: a round of 9 games passes in 50 s, not 75
@@ -3371,6 +3402,7 @@ function boot(){
   if(NEEDS_MATCHES){ periodic(loadLive, 2*60000); periodic(loadMatches, 30*60*1000); }
   periodic(loadPrayers, 6*3600*1000);
   periodic(loadMarkets, 15*60*1000);
+  periodic(loadGold, 60*1000);
   if(USES('shows')) periodic(loadWeek, 6*3600*1000);
   periodic(loadWeather, 30*60*1000);
   cardTimers();
@@ -3381,7 +3413,7 @@ function boot(){
     const d = FMT_DATE.format(new Date());
     if(d !== lastDay){
       lastDay = d; tickDates(); tickOccasion(); renderPanel(false);
-      later(() => { loadPhotoIndex().then(() => applyBackground(true)); loadPrayers(); if(NEEDS_MATCHES) loadMatches(); if(USES('shows')) loadWeek(); loadWeather(); });   // each TV at its own minute
+      later(() => { if(!CONFIG.homeBg) loadPhotoIndex().then(() => applyBackground(true)); loadPrayers(); if(NEEDS_MATCHES) loadMatches(); if(USES('shows')) loadWeek(); loadWeather(); });   // each TV at its own minute
     }
   }, 60*1000);
 }

@@ -172,7 +172,9 @@ check("workflow: a timer, by hand, or a push to master/next touching only its ow
                         and set(re.findall(r"- '([^']+)'", push)) == {".github/tools/league_fixtures.py", ".github/workflows/league-fixtures.yml"})),
       on[-400:])
 check("workflow: pushes only to data-leagues", "git push -f origin data-leagues" in wf and "origin work" not in wf)
-check("page reads the branch the workflow writes", "tshi-dev/UrTV/data-leagues/leagues/" in (ROOT / "src/template.html").read_text(encoding="utf-8"))
+_tpl = (ROOT / "src/template.html").read_text(encoding="utf-8")
+check("page reads no league file: they were on another owner's GitHub", "const LEAGUE_BASE = self.URTV_LEAGUE_BASE || '';" in _tpl and "if(!LEAGUE_BASE) return 0;" in _tpl
+      and "githubusercontent" not in _tpl)
 
 # ---- Prefs.leagueByName, the Java the settings screen and saver.sh share: English, Arabic and slug spellings
 javac, java = shutil.which("javac"), shutil.which("java")

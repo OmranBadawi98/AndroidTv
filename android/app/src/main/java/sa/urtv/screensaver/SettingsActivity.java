@@ -189,6 +189,8 @@ public class SettingsActivity extends Activity {
         }
         row("التحية والطقس", prefs.greeting() ? "تعمل" : "متوقفة", R.drawable.ic_eye,
             new Runnable() { public void run() { prefs.setGreeting(!prefs.greeting()); render(); } });
+        row("زر الواي فاي", prefs.wifiPill() ? "ظاهر في الشاشة الرئيسية" : "مخفي", R.drawable.ic_eye,
+            new Runnable() { public void run() { prefs.setWifiPill(!prefs.wifiPill()); render(); } });
         row("ترتيب التطبيقات المفضلة", "قائمة ترتّب فيها المفضلة بالأسهم", R.drawable.ic_star,
             new Runnable() { public void run() { openDockSettings(); } });
 
@@ -218,9 +220,7 @@ public class SettingsActivity extends Activity {
             new Runnable() { public void run() { pickIdle(); } });
 
         header("التطبيق");
-        row("التحديث التلقائي للصفحة", prefs.autoUpdate() ? "يعمل · عند بدء الشاشة، كل ٦ ساعات" : "متوقف", R.drawable.ic_sync, new Runnable() { public void run() {
-            prefs.setAutoUpdate(!prefs.autoUpdate()); render(); } });
-        View last = row("تحديث الشاشة الآن", "ينزّل أحدث نسخة من الشاشة", R.drawable.ic_sync, new Runnable() { public void run() { updateNow(); } });
+        View last = row("الإصدار", "بدون تحديث من الإنترنت", R.drawable.ic_sync, new Runnable() { public void run() { updateNow(); } });
         note(last, Updater.versionLines(this));
     }
 
@@ -926,7 +926,6 @@ public class SettingsActivity extends Activity {
     }
 
     private void updateNow() {
-        toast("جارٍ التحقق…");
         new Thread(() -> {
             final String msg = Updater.check(getApplicationContext(), true);
             runOnUiThread(() -> { toast(msg); if (!isFinishing()) render(); });

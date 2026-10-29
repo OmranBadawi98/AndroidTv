@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 /**
  * For tests/pill_text_test.py: PillText.java on tests/pill_text_cases.tsv. A line is
  *   shown    LABEL  focused(0|1)                  -> what the pill shows
- *   sleep    MINUTES                              -> the sleep pill's name
  *   network  wired(0|1) wifi(0|1) SSID            -> the network pill's name
  */
 public final class PillTextRun {
@@ -20,7 +19,6 @@ public final class PillTextRun {
             switch (f[0]) {
                 case "shown": out.append(PillText.shown(f[1], "1".equals(f[2]))); break;
                 case "saver": out.append(PillText.SAVER); break;
-                case "sleep": out.append(PillText.sleep(Integer.parseInt(f[1]))); break;
                 default: out.append(PillText.network("1".equals(f[1]), "1".equals(f[2]), f[3].equals("null") ? null : f[3]));
             }
             out.append('\n');

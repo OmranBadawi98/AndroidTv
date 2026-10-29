@@ -46,6 +46,7 @@ python3 tests/settings_move_test.py
 python3 tests/saver_off_test.py
 python3 tests/versions_test.py
 python3 tests/channel_test.py
+python3 tests/adb_self_test.py
 python3 tests/app_fixes_test.py
 python3 tests/keep_test.py
 python3 tests/keep_restore_test.py

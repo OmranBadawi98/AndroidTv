@@ -34,7 +34,7 @@ import java.util.Collections;
 final class HomeCard {
     private static final Uri CONFIG = Uri.parse("content://sa.urtv.screensaver.config");
     private static final String PREFS = "homecard";   // the last settings read from the screensaver
-    private static final String FONTS = "https://raw.githubusercontent.com/tshi-dev/UrTV/master/assets/fonts/";
+    private static final String FONTS = "https://urtv.invalid/assets/fonts/";   // src/build.py's REPO: answered here, never fetched
 
     /** The box in pixels, {width, height}, for that many cards; asked again whenever the screen is laid out. */
     interface Sizer { int[] box(int cards); }
@@ -154,7 +154,7 @@ final class HomeCard {
                 return true;
             }
 
-            // the page asks GitHub for its fonts; answer from the APK
+            // the page asks urtv.invalid for its fonts; answer from the APK
             @Override
             public void onPageFinished(WebView v, String u) {
                 if (target == null) return;
@@ -165,18 +165,8 @@ final class HomeCard {
 
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
-                String s = r.getUrl().toString();
-                if (s.startsWith(FONTS)) {
-                    String name = s.substring(FONTS.length());
-                    if (name.matches("[A-Za-z0-9_-]+\\.woff2")) {
-                        try {
-                            return new WebResourceResponse("font/woff2", null, 200, "OK",
-                                Collections.singletonMap("Access-Control-Allow-Origin", "*"),
-                                activity.getAssets().open("fonts/" + name));
-                        } catch (java.io.IOException ignored) { }
-                    }
-                }
-                return super.shouldInterceptRequest(v, r);
+                WebResourceResponse font = HomePage.font(activity, r.getUrl().toString());   // Thmanyah or Plex, from the APK
+                return font != null ? font : super.shouldInterceptRequest(v, r);
             }
         });
         WebSettings s = web.getSettings();

@@ -20,8 +20,9 @@ FONTS = {
     "__F_DISPLAY__": "ThmanyahDisplay-Bold.woff2",
     "__F_HAFS__": "UthmanicHafs-v30.woff2",   # the whole font, unmodified: its licence forbids changing it (see UthmanicHafs-NOTICE.txt)
 }
-# tv.html points here for fonts and bundled photos; the app answers from its assets, a browser from GitHub.
-REPO = "https://raw.githubusercontent.com/tshi-dev/UrTV/master/"
+# tv.html points here for fonts and bundled photos; the app answers from its assets. .invalid never resolves, so nothing
+# is fetched from GitHub or anywhere else (Channel.BASE in the screensaver, HomeCard.FONTS in the launcher).
+REPO = "https://urtv.invalid/"
 
 
 TAFSIR_MAX = 130   # characters kept of «التفسير الميسر»; the card shows at most three lines of it
@@ -290,6 +291,7 @@ def build_stamp():
 def main():
     html = (ROOT / "src/template.html").read_text(encoding="utf-8").replace("__BUILD__", build_stamp())
     # 2 KB, so inlined in both pages
+    html = html.replace("__PLEX__", REPO + "assets/plex/")   # IBM Plex Sans Arabic (OFL), the fallback when Thmanyah is not in the build
     html = html.replace("__F_MARKS__", data_uri(ROOT / "assets/fonts/NotoNaskhArabic-Marks.woff2", "font/woff2"))
     teams = json.loads((ROOT / "assets/shared/teams-ar.json").read_text(encoding="utf-8"))
     html = html.replace("__TEAMS_AR__", js_json(teams))

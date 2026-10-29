@@ -3,40 +3,40 @@ package sa.urtv.screensaver;
 import android.content.Context;
 import android.webkit.WebResourceResponse;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Comparator;
 
 /**
- * Answers the page's font and photo requests from the device instead of the network, so the screensaver
- * opens at once. Fonts and bundled photos come from the APK; hosted photos are downloaded once and kept.
+ * Answers the page's font and photo requests from the device, so the screensaver opens at once and nothing is fetched
+ * from GitHub: fonts and bundled photos come from the APK, the owner's own photos from Own's folder.
  */
 final class PhotoCache {
-    static final String REPO = "https://raw.githubusercontent.com/tshi-dev/UrTV/" + BuildConfig.BRANCH + "/";
-    private static final String BUNDLED = REPO + "assets/backgrounds/", HOSTED = REPO + "photos/",
-        FONTS = REPO + "assets/fonts/";
+    static final String REPO = Channel.BASE;
+    private static final String BUNDLED = REPO + "assets/backgrounds/", FONTS = REPO + "assets/fonts/", PLEX = REPO + "assets/plex/";
     /** the owner's own photos (Own): not a real address, the page asks for N.jpg here and only this app answers */
     static final String OWN = "https://own.urtv.invalid/";
-    private static final int KEEP = 12;   // the 5-photo set plus room for the next one
 
     private PhotoCache() {}
 
-    /** null lets the WebView load the URL itself */
-    static WebResourceResponse serve(Context c, String requested) {
-        String url = Channel.own(requested, REPO);   // a next build gets the page's master URLs too
+    /** null lets the WebView load the URL itself; anything else under REPO is a 404 from here, never the network */
+    static WebResourceResponse serve(Context c, String url) {
         try {
             if (url.startsWith(FONTS)) {
                 String name = url.substring(FONTS.length());
-                if (!name.matches("[A-Za-z0-9_-]+\\.woff2")) return null;
+                if (!name.matches("[A-Za-z0-9_-]+\\.woff2")) return missing();
                 // fonts are fetched with CORS, and the page's origin is file://
                 java.util.Map<String, String> h = new java.util.HashMap<>();
                 h.put("Access-Control-Allow-Origin", "*");
                 return new WebResourceResponse("font/woff2", null, 200, "OK", h, c.getAssets().open("fonts/" + name));
+            }
+            if (url.startsWith(PLEX)) {   // IBM Plex Sans Arabic (OFL): the page's font when the build has no Thmanyah
+                String name = url.substring(PLEX.length());
+                if (!name.matches("IBMPlexSansArabic-[A-Za-z]+\\.ttf")) return missing();
+                java.util.Map<String, String> h = new java.util.HashMap<>();
+                h.put("Access-Control-Allow-Origin", "*");
+                return new WebResourceResponse("font/ttf", null, 200, "OK", h, c.getAssets().open("plex/" + name));
             }
             if (url.startsWith(OWN)) {
                 String name = url.substring(OWN.length());
@@ -46,16 +46,10 @@ final class PhotoCache {
             }
             if (url.startsWith(BUNDLED)) {
                 String name = safeName(url.substring(BUNDLED.length()));
-                return name == null ? null : jpeg(c.getAssets().open("backgrounds/" + name));
-            }
-            if (url.startsWith(HOSTED)) {
-                String name = safeName(url.substring(HOSTED.length()));
-                if (name == null) return null;   // index.json and anything else go to the network
-                File f = hosted(c, url, name);
-                return f == null ? null : jpeg(new FileInputStream(f));
+                return name == null ? missing() : jpeg(c.getAssets().open("backgrounds/" + name));
             }
         } catch (Exception ignored) { }
-        return null;
+        return url.startsWith(REPO) ? missing() : null;   // e.g. a Thmanyah font this build does not carry
     }
 
     private static String safeName(String s) {
@@ -66,53 +60,7 @@ final class PhotoCache {
         return new WebResourceResponse("image/jpeg", null, in);
     }
 
-    /** Runs on the WebView's network thread, so a blocking download is fine. */
-    private static synchronized File hosted(Context c, String url, String name) throws java.io.IOException {
-        File dir = new File(c.getFilesDir(), "photos");
-        File f = new File(dir, name);
-        if (f.isFile() && f.length() > 0) {
-            f.setLastModified(System.currentTimeMillis());   // served now: the next prune keeps it (it keeps the newest, by this time)
-            return f;
-        }
-        if (!dir.isDirectory() && !dir.mkdirs()) return null;
-        HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
-        con.setConnectTimeout(15000);
-        con.setReadTimeout(30000);
-        File tmp = new File(dir, name + ".tmp");
-        try {
-            if (con.getResponseCode() != HttpURLConnection.HTTP_OK) return null;
-            if (con.getContentLength() > Bounded.IMAGE_MAX) return null;
-            byte[] data;
-            try (InputStream in = con.getInputStream()) { data = Bounded.readAll(in, Bounded.IMAGE_MAX); }
-            if (!validImage(data)) return null;   // an error page or a cut download is not kept as a photo
-            try (FileOutputStream out = new FileOutputStream(tmp)) { out.write(data); }
-            if (!tmp.renameTo(f)) return null;
-        } finally {
-            con.disconnect();
-            tmp.delete();
-        }
-        prune(dir);
-        return f;
-    }
-
-    /** Whether these bytes are a picture that decodes (its size is read, not the pixels) and is not absurdly large. */
-    static boolean validImage(byte[] data) {
-        android.graphics.BitmapFactory.Options o = new android.graphics.BitmapFactory.Options();
-        o.inJustDecodeBounds = true;
-        android.graphics.BitmapFactory.decodeByteArray(data, 0, data.length, o);
-        return o.outWidth > 0 && o.outHeight > 0 && o.outWidth <= 12000 && o.outHeight <= 12000;
-    }
-
-    /** Keep the newest few, and no more than the size budget; older sets are not shown again for months. */
-    private static void prune(File dir) {
-        File[] all = dir.listFiles((d, n) -> n.endsWith(".jpg"));
-        if (all == null) return;
-        Arrays.sort(all, new Comparator<File>() {
-            @Override public int compare(File a, File b) { return Long.compare(b.lastModified(), a.lastModified()); }
-        });
-        long[] sizes = new long[Math.min(all.length, KEEP)];
-        for (int i = 0; i < sizes.length; i++) sizes[i] = all[i].length();
-        int keep = Bounded.fitting(sizes, Bounded.CACHE_MAX);
-        for (int i = Math.max(1, keep); i < all.length; i++) all[i].delete();   // the one just fetched always stays
+    private static WebResourceResponse missing() {
+        return new WebResourceResponse("text/plain", null, 404, "Not Found", null, new ByteArrayInputStream(new byte[0]));
     }
 }

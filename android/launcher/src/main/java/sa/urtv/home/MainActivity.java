@@ -107,8 +107,11 @@ public class MainActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable rotateWallpaper = this::nextWallpaper;
     static final long WALLPAPER_INTERVAL_MS = 10 * 60 * 1000;
-    private TextView greeting, weatherLine, clock, ampm, date, zoneLine, title, appsLabel;
-    private Pill wifiPill;   // the network's name shows while it has the focus
+    private TextView greeting, weatherLine, clock, ampm, date, goldText, title, appsLabel;
+    private GoldLine goldLine;
+    private HomePage homePage;   // the screensaver's page as the home screen's face (HomePage); the apps are one press down
+    private Pill wifiPill;   // «واي فاي»: in the row only while «زر الواي فاي» is on in the screensaver's settings; the network's name shows while it has the focus
+    private LinearLayout pillRow;
     private Greeting greetingLine;
     private int glowColor = 0xFF3A3A3A;
     private ValueAnimator glowAnim;
@@ -118,7 +121,6 @@ public class MainActivity extends Activity {
     private PopupWindow inputsPopup;
     private HomeCard homeCard;
     private NowCard nowCard;   // «يُتلى الآن»: at the right end of the pills row while a surah or a station is on
-    private Pill sleepPill;   // «مؤقت النوم», with the minutes left while it runs (shown while it has the focus)
     private TextView adhanBar;   // «أذان المغرب بعد ٨ دقائق», over the top edge; while the adhan plays «أذان المغرب · أي زر يوقف الأذان»
     private final AdhanKeys adhanKeys = new AdhanKeys();
     private View clockBlock, bottomBlock;   // the greeting, clock and date; the app title and the dock under it
@@ -136,10 +138,6 @@ public class MainActivity extends Activity {
             updateNowPlaying();
             updateAdhanBar(ConfigSnapshot.read(MainActivity.this));   // the adhan began or ended: the bar names it, or goes
         }
-    };
-    // the sleep timer started, ended or was cancelled (here, or from the computer): the pill follows at once
-    private final BroadcastReceiver sleepChanged = new BroadcastReceiver() {
-        @Override public void onReceive(Context c, Intent i) { updateSleepPill(); }
     };
     private final BroadcastReceiver packages = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) { buildApps(); }
@@ -172,7 +170,6 @@ public class MainActivity extends Activity {
         pf.addDataScheme("package");
         registerReceiver(packages, pf);
         registerReceiver(dockChanged, new IntentFilter(Dock.CHANGED));
-        registerReceiver(sleepChanged, new IntentFilter(SleepTimer.CHANGED));
         registerReceiver(nowPlayingChanged, new IntentFilter(NowPlaying.CHANGED));
     }
 
@@ -188,11 +185,9 @@ public class MainActivity extends Activity {
         updateClock();
         updateWifi();
         updateNowPlaying();
-        homeCard.refresh();
+        homePage.refresh();   // the page instead of the cards
         wireFocus();   // the «المهام» card may have come or gone with the settings
-        View last = lastFocusedId == View.NO_ID ? null : findViewById(lastFocusedId);
-        if (last == null && !dockCards.isEmpty()) last = dockCards.get(0);
-        if (last != null) last.requestFocus();
+        showPage();
         // Catch installs/removals that happened while another app was in front.
         if (getPackageManager().getChangedPackages(packageSeq) != null) buildApps();
         if (firstShow) {   // the entrance plays once the favourites are on screen (they come from the loader thread)
@@ -215,16 +210,17 @@ public class MainActivity extends Activity {
         unregisterReceiver(tick);
         if (inputsPopup != null) inputsPopup.dismiss();
         homeCard.pause();
+        homePage.pause();
     }
 
     @Override
     protected void onDestroy() {
         unregisterReceiver(packages);
         unregisterReceiver(dockChanged);
-        unregisterReceiver(sleepChanged);
         unregisterReceiver(nowPlayingChanged);
         loader.shutdownNow();
         homeCard.destroy();
+        homePage.destroy();
         super.onDestroy();
     }
 
@@ -232,16 +228,22 @@ public class MainActivity extends Activity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         Parental.SESSION.clear();
-        // Home pressed while already home: jump back to the first dock app.
+        // Home pressed while already home: back to the page.
         if (inputsPopup != null) inputsPopup.dismiss();
-        if (!dockCards.isEmpty()) dockCards.get(0).requestFocus();
-        scroll.smoothScrollTo(0, 0);
+        showPage();
     }
 
     @Override
     public void onBackPressed() {
-        // Home has nowhere to go back to; Back from the grid returns to the dock.
-        if (scroll.getScrollY() > 0 && !dockCards.isEmpty()) dockCards.get(0).requestFocus();
+        // Back from the apps returns to the page; Back on the page starts the screensaver, as OK on its pill does (same lock)
+        if (scroll.getScrollY() > 0) showPage();
+        else if (isInstalled(SAVER_PKG)) guarded(ParentalPolicy.PILL_SAVER, SAVER_PKG, "شاشة التوقف", this::startSaver);
+    }
+
+    /** The page in full: the top of the screen, the focus on the top bar (DOWN goes to the apps). */
+    private void showPage() {
+        if (!pills.isEmpty()) pills.get(0).requestFocus();
+        scroll.smoothScrollTo(0, 0);
     }
 
     // ---------------------------------------------------------------- layout
@@ -263,10 +265,12 @@ public class MainActivity extends Activity {
         scrim.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
                 new int[]{0xB3000000, 0x40000000, 0x26000000, 0x8C000000, 0xE6000000}));
         root.addView(scrim, new FrameLayout.LayoutParams(-1, -1));
+        scrim.setAlpha(0.35f);   // the page brings its own veils over the photo
         gridShade = new View(this);
-        gridShade.setBackgroundColor(0xB3000000);
+        gridShade.setBackgroundColor(0xE6000000);   // dark enough that the page (its big clock) stays out of the way of the apps
         gridShade.setAlpha(0f);
         root.addView(gridShade, new FrameLayout.LayoutParams(-1, -1));
+        homePage = new HomePage(this, root, root.indexOfChild(gridShade));
         try {
             wallpapers = getAssets().list("wallpapers");
         } catch (java.io.IOException ignored) { }
@@ -322,12 +326,13 @@ public class MainActivity extends Activity {
         bottom.setOrientation(LinearLayout.VERTICAL);
         bottom.setClipChildren(false);
         bottom.setClipToPadding(false);
-        hero.addView(bottom, lp(-1, -2, Gravity.BOTTOM, dp(48), 0, dp(48), dp(30)));
+        content.addView(bottom, llp(-1, -2, dp(48), dp(28), dp(48), dp(30)));   // under the page: one press down from the top bar
         bottomBlock = bottom;
 
         title = text(34, "sans-serif-light", Color.WHITE);
         title.setShadowLayer(dp(18), 0, 0, 0x66000000);
         title.setSingleLine(true);
+        title.setVisibility(View.GONE);   // the owner wants no name over the favourites (kept for the card's measure)
         bottom.addView(title, new LinearLayout.LayoutParams(-2, -2));
         ((LinearLayout.LayoutParams) title.getLayoutParams()).setMargins(dp(8), 0, 0, dp(14));
 
@@ -382,40 +387,36 @@ public class MainActivity extends Activity {
         LinearLayout left = new LinearLayout(this);
         left.setOrientation(LinearLayout.VERTICAL);
         // Top right, stacked tight: greeting, clock, date. Gravity.RIGHT, not END: for Arabic text END is the left.
-        greeting = text(15, "medium", GOLD);
+        greeting = text(22, "medium", GOLD);
         greeting.setSingleLine(true);
         left.addView(greeting, llp(-2, -2, 0, 0, dp(4), 0));
         // under it: the weather of the city and the next sunrise or sunset (shown only when the greeting is on and there is an answer)
-        weatherLine = text(12, "regular", 0xFFC6BBA4);
-        weatherLine.setMaxLines(2);
+        weatherLine = text(19, "regular", 0xD9FFFFFF);
+        weatherLine.setSingleLine(true);
         weatherLine.setVisibility(View.GONE);
-        left.addView(weatherLine, llp(-2, -2, 0, dp(1), dp(4), 0));
+        left.addView(weatherLine, llp(-2, -2, 0, dp(2), dp(4), 0));
         greetingLine = new Greeting(this, greeting, weatherLine);
 
         LinearLayout clockRow = new LinearLayout(this);
         clockRow.setGravity(Gravity.BOTTOM);
         clockRow.setGravity(Gravity.TOP);
-        clock = text(58, "display", 0xFFFFFDF6);
+        clock = text(96, "display", 0xFFFFFDF6);
         clock.setIncludeFontPadding(false);
-        ampm = text(16, "medium", GOLD);
+        ampm = text(24, "medium", GOLD);
         // the row reads from the right: the time first, then the ص or the م on its left
         clockRow.addView(clock);
-        clockRow.addView(ampm, llp(-2, -2, 0, dp(6), dp(8), 0));
-        left.addView(clockRow, llp(-2, -2, 0, dp(-2), 0, 0));
+        clockRow.addView(ampm, llp(-2, -2, 0, dp(12), dp(10), 0));
+        left.addView(clockRow, llp(-2, -2, 0, dp(2), 0, 0));
 
-        date = text(14, "regular", 0xFFC6BBA4);
+        date = text(22, "regular", 0xF2FFFFFF);
         date.setSingleLine(true);
-        left.addView(date, llp(-2, -2, 0, dp(-6), dp(4), 0));   // the display font leaves a deep gap under its digits
-        // «بتوقيت دبي» (with «· حساب الخليج» when the calculation is not Umm al-Qura), when the city's clock is not the TV's or the
-        // calculation is not Umm al-Qura: ClockZone.showLine
-        zoneLine = text(12, "regular", GOLD);
-        zoneLine.setSingleLine(true);
-        zoneLine.setVisibility(View.GONE);
-        left.addView(zoneLine, llp(-2, -2, 0, dp(1), dp(4), 0));
-        for (TextView t : new TextView[]{greeting, weatherLine, clock, ampm, date, zoneLine}) t.setShadowLayer(dp(3), 0, dp(1), 0x80000000);
+        left.addView(date, llp(-2, -2, 0, dp(-10), dp(4), 0));   // the display font leaves a deep gap under its digits
+        // no «بتوقيت المدينة · حساب …» line here: the owner wanted the block short (the screensaver still shows it)
+        for (TextView t : new TextView[]{greeting, weatherLine, clock, ampm, date}) t.setShadowLayer(dp(6), 0, dp(2), 0x99000000);
         left.setGravity(Gravity.RIGHT);
-        for (TextView t : new TextView[]{greeting, weatherLine, date, zoneLine}) t.setGravity(Gravity.RIGHT);
+        for (TextView t : new TextView[]{greeting, weatherLine, date}) t.setGravity(Gravity.RIGHT);
         header.addView(left, new FrameLayout.LayoutParams(-2, -2, Gravity.RIGHT | Gravity.TOP));
+        left.setVisibility(View.GONE);   // the page shows the clock, the date and the weather
         clockBlock = left;
 
         LinearLayout right = new LinearLayout(this);
@@ -426,24 +427,37 @@ public class MainActivity extends Activity {
         saver.setOnLongClickListener(v -> { guarded(ParentalPolicy.PILL_SAVER_SETTINGS, SAVER_PKG, "شاشة التوقف", () -> openPackage(SAVER_PKG)); return true; });   // a long OK: its settings, where OK used to go
         Pill inputs = pill("المصادر", R.drawable.ic_input);
         inputs.setOnClickListener(v -> showInputs(v, ParentalPolicy.PILL_INPUTS));
-        wifiPill = pill("واي فاي", R.drawable.ic_wifi);
-        wifiPill.setOnClickListener(v -> launchGuarded(ParentalPolicy.PILL_WIFI, new Intent(Settings.ACTION_WIFI_SETTINGS), "واي فاي"));
-        Pill tasks = pill("المهام", R.drawable.ic_mic);   // the list lives in the screensaver app
-        tasks.setOnClickListener(v -> launchGuarded(ParentalPolicy.PILL_TASKS, new Intent(this, TasksActivity.class), "المهام"));
         Pill settings = pill("الإعدادات", R.drawable.ic_settings);
         settings.setOnClickListener(v -> launchGuarded(ParentalPolicy.PILL_TV_SETTINGS, new Intent(Settings.ACTION_SETTINGS), "إعدادات التلفزيون"));
         // the «تلاوة وأذان» pill: the Quran, the radio and the adhan are part of this app, so it opens them right here
         Pill tilawah = pill("تلاوة وأذان", R.drawable.ic_listen);
         tilawah.setOnClickListener(v -> launchGuarded(ParentalPolicy.PILL_LISTEN, new Intent(this, sa.urtv.home.tilawah.MainActivity.class), "تلاوة وأذان"));
-        sleepPill = pill("مؤقت النوم", R.drawable.ic_sleep);
-        sleepPill.setOnClickListener(v -> guarded(ParentalPolicy.PILL_SLEEP, null, "مؤقت النوم", () -> showSleep(v)));
-        List<Pill> row = new ArrayList<>(Arrays.asList(inputs, wifiPill, settings, sleepPill));
-        if (isInstalled(SAVER_PKG)) { row.add(tasks); row.add(saver); }
+        // «إدارة التطبيقات»: turn apps off or on, and pick the home screen's, behind the same lock as in the menu
+        Pill manage = pill("إدارة التطبيقات", R.drawable.ic_apps);
+        manage.setOnClickListener(v -> launchGuarded(ParentalPolicy.PARENTAL_SCREEN, new Intent(this, AppsActivity.class), "إدارة التطبيقات"));
+        // «واي فاي» only when the setting is on (showWifiPill, after «المصادر»), locked with the TV's settings; no «مؤقت النوم» or «المهام»
+        // pills: the owner wanted the row shorter (the sleep timer still runs from the computer)
+        wifiPill = pill("واي فاي", R.drawable.ic_wifi);
+        wifiPill.setOnClickListener(v -> launchGuarded(ParentalPolicy.PILL_TV_SETTINGS, new Intent(Settings.ACTION_WIFI_SETTINGS), "واي فاي"));
+        List<Pill> row = new ArrayList<>(Arrays.asList(inputs, settings, manage));
+        if (isInstalled(SAVER_PKG)) row.add(saver);
         if (getResources().getBoolean(R.bool.show_listening)) row.add(tilawah);
         for (Pill p : row) {
             right.addView(p, llp(-2, dp(Pill.HEIGHT), dp(10), 0, 0, 0));
             pills.add(p);
         }
+        // the gold card (GoldLine): the last child, so the top-left corner; as tall as «يُتلى الآن», hung over the row the same way
+        goldText = text(17, "regular", Color.WHITE);
+        goldText.setSingleLine(true);
+        goldText.setGravity(Gravity.CENTER_VERTICAL);
+        goldText.setPadding(dp(16), 0, dp(16), 0);
+        GradientDrawable goldBg = new GradientDrawable();
+        goldBg.setCornerRadius(dp(NowCard.HEIGHT / 2f));
+        goldBg.setColor(0x8C14110C);
+        goldBg.setStroke(dp(1), 0x66D6AF6B);
+        goldText.setBackground(goldBg);
+        goldText.setVisibility(View.GONE);
+        // not added: the page's markets line shows the gold (24K per gram in dirhams) at the top left
         // «يُتلى الآن»: the first child of the row, so it sits at its right end and the pills keep their places when it comes
         nowCard = new NowCard(this, font("medium"), font("regular"), getDrawable(R.drawable.ic_play), getDrawable(R.drawable.ic_pause));
         nowCard.setId(View.generateViewId());
@@ -457,8 +471,29 @@ public class MainActivity extends Activity {
         // reaches from 31 to 75 dp down, clear of the adhan bar (to 26) and the cards (from 84)
         int hang = dp((NowCard.HEIGHT - Pill.HEIGHT) / 2f);
         right.addView(nowCard, 0, llp(-2, dp(NowCard.HEIGHT), dp(10), -hang, 0, -hang));
-        header.addView(right, new FrameLayout.LayoutParams(-2, -2, Gravity.LEFT | Gravity.TOP));
+        GradientDrawable bar = new GradientDrawable();
+        bar.setCornerRadius(dp(Pill.HEIGHT / 2f + 8));
+        bar.setColor(0x66101010);
+        bar.setStroke(dp(1), 0x26FFFFFF);
+        right.setBackground(bar);
+        right.setPadding(dp(8), dp(8), dp(18), dp(8));
+        header.addView(right, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER_HORIZONTAL | Gravity.TOP));
+        pillRow = right;
         return header;
+    }
+
+    /** «زر الواي فاي» in the screensaver's settings: the pill comes in after «المصادر», or goes; the D-pad order follows. */
+    private void showWifiPill(boolean on) {
+        if (wifiPill == null || pillRow == null || on == pills.contains(wifiPill)) return;
+        if (on) {
+            pillRow.addView(wifiPill, pillRow.indexOfChild(pills.get(0)) + 1, llp(-2, dp(Pill.HEIGHT), dp(10), 0, 0, 0));
+            pills.add(1, wifiPill);
+        } else {
+            if (wifiPill.hasFocus()) pills.get(0).requestFocus();
+            pillRow.removeView(wifiPill);
+            pills.remove(wifiPill);
+        }
+        wireFocus();
     }
 
     /** Shows or hides the «يُتلى الآن» card by what «تلاوة» is doing: a surah or a station (playing or paused), else nothing. */
@@ -561,7 +596,8 @@ public class MainActivity extends Activity {
         for (int i = 0; i < dock.size(); i++) {
             View tile = tile(dock.get(i), true);
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -2, 1f);
-            p.setMargins(i == 0 ? 0 : dp(10), 0, i == dock.size() - 1 ? 0 : dp(10), 0);
+            p.setMarginStart(i == 0 ? 0 : dp(10));   // start/end: the row reads from the right, so left/right gave the end gaps half
+            p.setMarginEnd(i == dock.size() - 1 ? 0 : dp(10));
             dockRow.addView(tile, p);
         }
         appsLabel.setVisibility(rest.isEmpty() ? View.GONE : View.VISIBLE);
@@ -569,7 +605,7 @@ public class MainActivity extends Activity {
         if (!dock.isEmpty()) { title.setText(dock.get(0).label); setGlow(dock.get(0).color); }
         View last = lastFocusedId == View.NO_ID ? null : findViewById(lastFocusedId);
         if (last != null) last.requestFocus();
-        else if (!dockCards.isEmpty()) dockCards.get(0).requestFocus();
+        else if (!pills.isEmpty()) pills.get(0).requestFocus();
         appsShown = true;
         if (entranceDue) { entranceDue = false; playEntrance(); }
         applyPendingFocus();
@@ -591,7 +627,8 @@ public class MainActivity extends Activity {
             }
             View tile = tile(rest.get(i), false);
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -2, 1f);
-            p.setMargins(i % cols == 0 ? 0 : dp(10), 0, i % cols == cols - 1 ? 0 : dp(10), 0);
+            p.setMarginStart(i % cols == 0 ? 0 : dp(10));
+            p.setMarginEnd(i % cols == cols - 1 ? 0 : dp(10));
             row.addView(tile, p);
         }
         if (to < rest.size()) {
@@ -602,7 +639,8 @@ public class MainActivity extends Activity {
         // Pad the last row so tiles keep their width.
         if (row != null) for (int i = rest.size() % cols; i != 0 && i < cols; i++) {
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, 1, 1f);
-            p.setMargins(dp(10), 0, i == cols - 1 ? 0 : dp(10), 0);
+            p.setMarginStart(dp(10));
+            p.setMarginEnd(i == cols - 1 ? 0 : dp(10));
             row.addView(new View(this), p);
         }
         wireFocus();
@@ -688,8 +726,8 @@ public class MainActivity extends Activity {
                 title.setText(app.label);
                 title.animate().alpha(1f).setDuration(200).start();
                 animateGlow(app.color);
-                fadeGlow(1f);
-                scroll.smoothScrollTo(0, 0);
+                fadeGlow(0.6f);
+                scroll.smoothScrollTo(0, Math.max(0, bottomBlock.getTop() - dp(56)));   // the dock at the top, the apps under it
             } else {
                 fadeGlow(0.35f);
                 title.animate().alpha(0f).setDuration(200).start();
@@ -805,6 +843,8 @@ public class MainActivity extends Activity {
         List<Runnable> actions = new ArrayList<>();
         labels.add("ترتيب المفضلة…");
         actions.add(() -> launchGuarded(ParentalPolicy.MENU_ARRANGE, new Intent(this, DockActivity.class), "ترتيب المفضلة"));
+        labels.add("إدارة التطبيقات…");
+        actions.add(() -> launchGuarded(ParentalPolicy.PARENTAL_SCREEN, new Intent(this, AppsActivity.class), "إدارة التطبيقات"));
         if (inDock) {
             if (dock.size() > MIN_DOCK) {
                 labels.add("إزالة من المفضلة");
@@ -911,49 +951,6 @@ public class MainActivity extends Activity {
         rows.get(0).requestFocus();
     }
 
-    /** «مؤقت النوم»: 15, 30, 60, 90 minutes, or cancel; at the end the TV goes to sleep (SleepTimer says how). */
-    private void showSleep(View anchor) {
-        LinearLayout list = new LinearLayout(this);
-        list.setOrientation(LinearLayout.VERTICAL);
-        list.setPadding(dp(8), dp(8), dp(8), dp(8));
-        GradientDrawable bg = new GradientDrawable();
-        bg.setCornerRadius(dp(16));
-        bg.setColor(0xF02A2A2E);
-        bg.setStroke(dp(1), 0x26FFFFFF);
-        list.setBackground(bg);
-        PopupWindow pw = new PopupWindow(list, dp(220), -2, true);
-        List<TextView> rows = new ArrayList<>();
-        for (int m : SleepTimer.MINUTES) rows.add(inputRow(arabicDigits(String.valueOf(m)) + " دقيقة", () -> SleepTimer.start(this, m)));
-        if (SleepTimer.minutesLeft(this) > 0) rows.add(inputRow("إلغاء", () -> SleepTimer.start(this, 0)));
-        if (!SleepService.enabled()) {   // without it the end only stops the sound and brings the screensaver: say so, and where to turn it on
-            rows.add(inputRow("لإطفاء الشاشة: فعّل «تلفزيونك: إطفاء الشاشة»", () -> launchGuarded(ParentalPolicy.SLEEP_ACCESSIBILITY, new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS), "إعدادات التلفزيون")));
-        }
-        for (TextView r : rows) {
-            r.setOnClickListener(v -> { pw.dismiss(); ((Runnable) v.getTag()).run(); });
-            list.addView(r, new LinearLayout.LayoutParams(-1, dp(36)));
-        }
-        for (int i = 0; i < rows.size(); i++) {
-            TextView r = rows.get(i);
-            r.setNextFocusUpId(rows.get(Math.max(0, i - 1)).getId());
-            r.setNextFocusDownId(rows.get(Math.min(rows.size() - 1, i + 1)).getId());
-            r.setNextFocusLeftId(r.getId());
-            r.setNextFocusRightId(r.getId());
-        }
-        pw.setOutsideTouchable(true);
-        pw.setElevation(dp(16));
-        pw.setOnDismissListener(() -> anchor.requestFocus());
-        pw.showAsDropDown(anchor, 0, dp(8), Gravity.START);
-        rows.get(0).requestFocus();
-    }
-
-    /** The pill says how long is left while the timer runs: «مؤقت النوم ٢٣ د». */
-    private void updateSleepPill() {
-        if (sleepPill == null) return;
-        int left = SleepTimer.minutesLeft(this);
-        sleepPill.setLabel(Digits.of(PillText.sleep(left)));
-        sleepPill.setAccent(left > 0);   // gold while it runs: the minutes show when the pill has the focus
-    }
-
     private String inputLabel(TvInputInfo t) {
         CharSequence c = t.loadCustomLabel(this);
         if (c == null || c.length() == 0) c = t.loadLabel(this);
@@ -982,7 +979,7 @@ public class MainActivity extends Activity {
     // ---------------------------------------------------------------- status
 
     // The two date formats are made once and given the city's zone when it changes: the tick runs every minute.
-    private android.icu.text.SimpleDateFormat hijriFormat, hijriWeekday, hijriDay;
+    private android.icu.text.SimpleDateFormat hijriDay;
     private SimpleDateFormat gregFormat;
     private String formatZone = "";
 
@@ -997,42 +994,32 @@ public class MainActivity extends Activity {
         Calendar now = ClockZone.at(ms, tz);   // the city's time, like the prayer times beside it
         int h = now.get(Calendar.HOUR_OF_DAY);
         greetingLine.update(h, cfg);
+        if (goldLine != null) goldLine.update(Digits.latin());
         boolean h24 = cfg.clock24();   // «ساعة ٢٤»: off (12-hour with the ص or م) unless the owner turned it on
         clock.setText(ClockText.face(h, now.get(Calendar.MINUTE), h24, Digits.latin()));
         ampm.setText(ClockText.suffix(h, h24));
         ampm.setVisibility(h24 ? View.GONE : View.VISIBLE);
-        String cal = zone == null ? "" : ClockZone.calendar(zone[1], zone[2]);
-        boolean other = zone != null && ClockZone.showLine(ClockZone.differs(tvTz, tz, ms), cal);
-        zoneLine.setVisibility(other ? View.VISIBLE : View.GONE);
-        if (other) zoneLine.setText(ClockZone.label(zone[0], cal));
         if (gregFormat == null) {
-            gregFormat = new SimpleDateFormat("d MMMM", new Locale("ar"));
+            gregFormat = new SimpleDateFormat("EEEE، d MMMM", new Locale("ar"));
             try {
-                hijriFormat = new android.icu.text.SimpleDateFormat("EEEE، d MMMM y", new android.icu.util.ULocale("ar_SA@calendar=islamic-umalqura"));
-                hijriDay = new android.icu.text.SimpleDateFormat("d MMMM y", new android.icu.util.ULocale("ar_SA@calendar=islamic-umalqura"));
+                hijriDay = new android.icu.text.SimpleDateFormat("d MMMM", new android.icu.util.ULocale("ar_SA@calendar=islamic-umalqura"));
             } catch (Exception ignored) { }
         }
         if (!tz.equals(formatZone)) {
             gregFormat.setTimeZone(java.util.TimeZone.getTimeZone(tz));
-            if (hijriFormat != null) hijriFormat.setTimeZone(android.icu.util.TimeZone.getTimeZone(tz));
             if (hijriDay != null) hijriDay.setTimeZone(android.icu.util.TimeZone.getTimeZone(tz));
             formatZone = tz;
         }
         String hijri = "";
         try {
             int shift = HijriShift.fromFragment(cfg.fragment);   // «فرق التاريخ الهجري»: 0 unless the settings say so
-            if (hijriFormat != null && shift == 0) hijri = hijriFormat.format(now.getTime()).replaceAll("\\s*هـ\\s*$", "") + " هـ";
-            else if (hijriFormat != null) {   // the day, month and year move by the offset; the weekday is today's
-                if (hijriWeekday == null) hijriWeekday = new android.icu.text.SimpleDateFormat("EEEE", new android.icu.util.ULocale("ar_SA@calendar=islamic-umalqura"));
-                hijriWeekday.setTimeZone(android.icu.util.TimeZone.getTimeZone(tz));
-                hijri = hijriWeekday.format(now.getTime()) + "، " + hijriDay.format(HijriShift.date(now, shift)).replaceAll("\\s*هـ\\s*$", "") + " هـ";
-            }
+            if (hijriDay != null) hijri = hijriDay.format(shift == 0 ? now.getTime() : HijriShift.date(now, shift)).replaceAll("\\s*هـ\\s*$", "");
         } catch (Exception ignored) { }
         String greg = gregFormat.format(now.getTime());
-        date.setText(arabicDigits(hijri.isEmpty() ? greg : hijri + "  –  " + greg));
+        date.setText(arabicDigits(hijri.isEmpty() ? greg : greg + "  –  " + hijri));
         updateAdhanBar(cfg);
+        showWifiPill(cfg.wifiPillOn);
         sa.urtv.home.tilawah.AdhanSync.onConfig(this, cfg.fragment);   // «تعديل وقت الصلاة» changed on the TV: the alarm follows
-        updateSleepPill();
     }
 
     /** Once a minute with the clock: the bar before the adhan shows in the last 10 minutes, and until the iqama. */
@@ -1049,6 +1036,7 @@ public class MainActivity extends Activity {
     /** Connected or not comes from ConnectivityManager: WifiManager hides the network (id -1, "<unknown ssid>")
      *  from apps without location access, which looked like "not connected". The name only when readable. */
     private void updateWifi() {
+        if (wifiPill == null) return;
         boolean wired = false, wifi = false;
         String ssid = null;
         try {
@@ -1098,14 +1086,25 @@ public class MainActivity extends Activity {
         return v;
     }
 
-    // Hosted photos (photos/index.json in the repo) join the bundled ones. Each is downloaded once into
-    // files/photos and reused; offline or on any failure the next bundled photo is shown instead.
-    static final String PHOTO_BASE = "https://raw.githubusercontent.com/tshi-dev/UrTV/master/photos/";
+    // Photos from the internet: Bing's photos of the last 8 days (nature, cities, landscapes; one new a day, no key). The list
+    // is asked for once a day, each photo once and kept; while they are there the bundled photos are only the fallback
+    // (offline, or a photo not downloaded yet). Nothing comes from GitHub.
+    static final String PHOTO_HOST = "https://www.bing.com";
+    static final String PHOTO_FEED = PHOTO_HOST + "/HPImageArchive.aspx?format=js&idx=0&n=8&mkt=en-US";
     static final long INDEX_MAX_AGE_MS = 24 * 3600 * 1000L;
 
-    static final int PHOTO_SET = 5, PHOTO_PERIOD_DAYS = 4;
+    static final int PHOTO_SET = 8, PHOTO_PERIOD_DAYS = 1;
 
-    /** This 4-day period's 5 hosted photos: the same Park-Miller draw as photoSet() in the screensaver page. */
+    /** Where a kept photo's name comes from: "name|/th?id=…" lines, written with the list. */
+    private String photoUrl(String name) {
+        for (String row : prefs().getString("photoUrls", "").split("\n")) {
+            int bar = row.indexOf('|');
+            if (bar > 0 && row.substring(0, bar).equals(name)) return PHOTO_HOST + row.substring(bar + 1) + "_1920x1080.jpg";
+        }
+        return null;
+    }
+
+    /** The day's hosted photos, in a Park-Miller order that changes once a day. */
     private String[] remotePhotos() {
         String s = prefs().getString("photoIndex", "");
         if (s.isEmpty()) return new String[0];
@@ -1147,14 +1146,19 @@ public class MainActivity extends Activity {
         if (System.currentTimeMillis() - prefs().getLong("photoIndexAt", 0) < INDEX_MAX_AGE_MS) return;
         if (failedRecently("index.json")) return;
         try {
-            org.json.JSONArray a = new org.json.JSONArray(new String(download(PHOTO_BASE + "index.json", Bounded.JSON_MAX), "UTF-8"));
+            org.json.JSONArray a = new org.json.JSONObject(new String(download(PHOTO_FEED, Bounded.JSON_MAX), "UTF-8")).getJSONArray("images");
             List<String> names = new ArrayList<>();
+            StringBuilder urls = new StringBuilder();
             for (int i = 0; i < a.length(); i++) {
-                String f = a.getJSONObject(i).optString("f");
-                if (f.matches("[A-Za-z0-9_-]+\\.jpg")) names.add(f);
+                String base = a.getJSONObject(i).optString("urlbase");   // "/th?id=OHR.WadiRum_EN-US1234567890"
+                if (!base.matches("/th\\?id=[A-Za-z0-9._-]+")) continue;
+                String f = base.substring(base.indexOf('=') + 1).replaceAll("[^A-Za-z0-9_-]", "_") + ".jpg";
+                names.add(f);
+                urls.append(f).append('|').append(base).append('\n');
             }
             if (!names.isEmpty()) prefs().edit()
                     .putString("photoIndex", android.text.TextUtils.join(",", names))
+                    .putString("photoUrls", urls.toString())
                     .putLong("photoIndexAt", System.currentTimeMillis()).apply();
         } catch (Exception ignored) {
             photoFailed.put("index.json", System.currentTimeMillis());
@@ -1231,7 +1235,8 @@ public class MainActivity extends Activity {
         final boolean only = ownCount > 0 && "only".equals(own[1]);
         prefs().edit().putLong("ownRev", (Long) own[2]).apply();
         final String[] remote = only ? new String[0] : remotePhotos();
-        final int base = only ? 0 : wallpapers.length + remote.length;   // ours come first, then the owner's
+        final int bundled = remote.length > 0 ? 0 : wallpapers.length;   // the internet's photos when there are any, else the bundled ones
+        final int base = only ? 0 : bundled + remote.length;   // those first, then the owner's
         final int total = only ? ownCount : base + ownCount;
         if (wallIndex < 0) wallIndex = prefs().getInt("wallpaper", -1);
         wallIndex = (wallIndex + 1) % total;
@@ -1249,8 +1254,8 @@ public class MainActivity extends Activity {
                 try {
                     bm = decode(() -> getContentResolver().openInputStream(photo));
                 } catch (java.io.IOException | RuntimeException ignored) { }
-            } else if (idx >= wallpapers.length) {
-                f = new java.io.File(getFilesDir(), "photos/" + remote[idx - wallpapers.length]);
+            } else if (idx >= bundled) {
+                f = new java.io.File(getFilesDir(), "photos/" + remote[idx - bundled]);
                 if (f.isFile()) {
                     final java.io.File kept = f;
                     try { bm = decode(() -> new java.io.FileInputStream(kept)); } catch (java.io.IOException | RuntimeException ignored) { }
@@ -1267,9 +1272,11 @@ public class MainActivity extends Activity {
             refreshPhotoIndex();
             pruneCachedPhotos(remotePhotos());
             if (!needsDownload || !Arrays.asList(remotePhotos()).contains(f.getName()) || failedRecently(f.getName())) return;
+            final String url = photoUrl(f.getName());
+            if (url == null) return;
             try {
                 byte[] data;
-                try { data = download(PHOTO_BASE + f.getName(), Bounded.IMAGE_MAX); }
+                try { data = download(url, Bounded.IMAGE_MAX); }
                 catch (java.io.IOException e) { photoFailed.put(f.getName(), System.currentTimeMillis()); throw e; }
                 if (!validImage(data)) { photoFailed.put(f.getName(), System.currentTimeMillis()); return; }   // not kept, not asked for again for an hour
                 java.io.File dir = f.getParentFile();
@@ -1484,7 +1491,11 @@ public class MainActivity extends Activity {
         Typeface tf = fonts.get(file);
         if (tf == null) {
             try { tf = Typeface.createFromAsset(getAssets(), "fonts/" + file + ".otf"); }
-            catch (RuntimeException e) { tf = Typeface.create("sans-serif", Typeface.NORMAL); }
+            catch (RuntimeException e) {   // no Thmanyah in this build (it comes from a private repo): IBM Plex Sans Arabic
+                String plex = file.endsWith("Display-Bold") || file.endsWith("Light") ? "Light" : file.endsWith("Medium") ? "Medium" : "Regular";
+                try { tf = Typeface.createFromAsset(getAssets(), "plex/IBMPlexSansArabic-" + plex + ".ttf"); }
+                catch (RuntimeException e2) { tf = Typeface.create("sans-serif", Typeface.NORMAL); }
+            }
             fonts.put(file, tf);
         }
         return tf;

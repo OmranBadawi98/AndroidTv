@@ -65,10 +65,7 @@ final class ScreenView {
         if (android.os.Build.VERSION.SDK_INT >= 23 && screen) s.setOffscreenPreRaster(true);   // draw before it is shown
         if (screen) w.addJavascriptInterface(new NowPlayingBridge(c), "UrtvNative");   // the «يُتلى الآن» card
         w.loadUrl(url);
-        if (screen) {
-            UpdateJob.schedule(c);
-            Updater.checkIfDue(c);   // the page and version check, at most every 6 hours, here and not on a timer
-        }
+        if (screen) UpdateJob.schedule(c);
         return w;
     }
 

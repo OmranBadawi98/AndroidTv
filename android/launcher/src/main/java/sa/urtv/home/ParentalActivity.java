@@ -137,12 +137,10 @@ public class ParentalActivity extends Activity {
     private static String pillName(String pill) {
         switch (pill) {
             case ParentalPolicy.INPUTS: return "المصادر";
-            case ParentalPolicy.WIFI: return "واي فاي";
             case ParentalPolicy.TV_SETTINGS: return "إعدادات التلفزيون";
             case ParentalPolicy.TASKS: return "المهام";
             case ParentalPolicy.SAVER: return "شاشة التوقف";
-            case ParentalPolicy.LISTEN: return "تلاوة وأذان";
-            default: return "مؤقت النوم";
+            default: return "تلاوة وأذان";
         }
     }
 
@@ -284,8 +282,7 @@ public class ParentalActivity extends Activity {
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
         t.setTextColor(color);
         t.setGravity(Gravity.RIGHT);
-        try { t.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/Thmanyah-" + weight + ".otf")); }
-        catch (RuntimeException ignored) { }
+        t.setTypeface(Fonts.get(this, "Thmanyah-" + weight + ".otf"));
         return t;
     }
 

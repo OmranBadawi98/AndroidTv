@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""A screensaver built from next serves the page's master asset URLs (fonts, backgrounds, photos) from its own
-prefix, like one built from master (Channel.java). Needs javac; without it, skipped.   Run: python3 tests/channel_test.py"""
+"""The page's fonts and backgrounds are asked of Channel.BASE, which only the app answers (PhotoCache), and nothing in it
+points at GitHub. Needs javac; without it, skipped.   Run: python3 tests/channel_test.py"""
 import shutil
 import subprocess
 import sys

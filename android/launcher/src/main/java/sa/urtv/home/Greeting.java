@@ -60,8 +60,10 @@ final class Greeting {
         long at = sp.getLong("at", 0);
         boolean sameCity = s.lat.equals(sp.getString("lat", "")) && s.lon.equals(sp.getString("lon", ""));
         if (sameCity && sp.contains("code") && System.currentTimeMillis() - at < STALE_MS && d != null) {
-            String line = GreetingText.weather(sp.getInt("code", -1), GreetingText.seenDust(sp.getFloat("dust", 0), sp.getFloat("vis", -1)), s.city, sp.getFloat("temp", 0), s.latin)
-                    + "\n" + GreetingText.sun(d.sunLabel, d.sunClock, s.latin, s.clock24);
+            // one short line: «29°  سماء صافية     الشروق 6:21 ص» (the city is the one the owner set; no need to name it)
+            String sky = GreetingText.skyWord(sp.getInt("code", -1), GreetingText.seenDust(sp.getFloat("dust", 0), sp.getFloat("vis", -1)));
+            String line = GreetingText.digits(Math.round(sp.getFloat("temp", 0)) + "°", s.latin) + (sky.isEmpty() ? "" : "  " + sky)
+                    + "     " + GreetingText.sun(d.sunLabel, d.sunClock, s.latin, s.clock24);
             weather.setText(line);
             weather.setVisibility(android.view.View.VISIBLE);
         } else {

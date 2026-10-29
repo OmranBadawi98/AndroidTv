@@ -51,7 +51,7 @@ check("home apps: names, art and colours load on one background thread; the grid
       "loader.execute(" in home and "private List<App> loadApps(" in home and "addGridRows(rest, to, gen)" in home
       and home.index("dockRow.addView(tile, p)") < home.index("addGridRows(rest, 0, gen)") and "BATCH_ROWS" in home)
 cache = same("app/src/main/java/sa/urtv/screensaver/PhotoCache.java")
-check("screensaver: hosted photos are capped, checked and kept within the size budget", "Bounded.IMAGE_MAX" in cache and "validImage(" in cache and "Bounded.fitting(" in cache and "Bounded.CACHE_MAX" in cache)
+check("screensaver: no hosted photos are downloaded (they were on another owner's GitHub)", "openConnection" not in cache and "HOSTED" not in cache)
 check("screensaver: the club search and the name lookup read through the cap",
       "Bounded.readAll(" in same("app/src/main/java/sa/urtv/screensaver/Arabic.java") and "Bounded.readAll(" in same("app/src/main/java/sa/urtv/screensaver/SettingsActivity.java"))
 sys.exit(1 if failed else 0)

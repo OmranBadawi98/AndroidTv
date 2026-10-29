@@ -243,7 +243,7 @@ pulled = os.path.join(tmp, "pulled")
 tv.TV().call("pull", "/sdcard/x", pulled)
 check("tv.py: pull works through adb", os.path.exists(pulled))
 os.environ["TV_PORT"] = "5555"
-check("tv.py: TV_PORT set by hand means plain TCP", tv.new_dev(5.0).__class__ is TcpDev and tv.upload_chunk() == 96_000)
+check("tv.py: TV_PORT set by hand means plain TCP", tv.new_dev(5.0).__class__ is TcpDev and tv.upload_chunk() == tv.PLAIN_CHUNK == 48_000)
 del os.environ["TV_PORT"]
 tv.HOST = "192.168.1.77"   # another address than the remembered TV: plain TCP
 check("tv.py: another address is not the paired TV", tv.new_dev(5.0).__class__ is TcpDev)

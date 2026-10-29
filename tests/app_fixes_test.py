@@ -18,10 +18,11 @@ body = prefs[prefs.index("static List<Task> parseTasks"):prefs.index("private vo
 check("Prefs.tasks: one entry that is not a task is skipped, inside the loop", body.index("try {", body.index("for (int k")) < body.index("out.add(new Task(") and "catch (JSONException bad)" in body)
 check("Prefs.tasks: parsed by a static method that takes the JSON", "parseTasks(sp.getString(\"tasks\"" in prefs)
 updater = text(APP / "Updater.java")
-check("Updater compares (major, minor), not the minor alone", "Versions.compare(latest, mine)" in updater and "minor(" not in updater)
+check("Updater asks no network: the page and the version come with the APK", "HttpURLConnection" not in updater and "openConnection" not in updater
+      and "https://" not in updater)
 cache = text(APP / "PhotoCache.java")
-check("PhotoCache: a photo that is served is touched, so the prune keeps the ones in use", "f.setLastModified(System.currentTimeMillis())" in cache
-      and cache.index("setLastModified") < cache.index("return f;"))
+check("PhotoCache downloads nothing, and anything under its address that it does not have is a 404, never the network",
+      "HttpURLConnection" not in cache and "openConnection" not in cache and "url.startsWith(REPO) ? missing() : null" in cache)
 saver = text(APP / "SaverReceiver.java")
 check("a place of your own without its time zone is refused, a built-in city is not",
       "tz == null && !inList(name)" in saver and "add the time zone" in saver and "private static boolean inList" in saver)

@@ -17,7 +17,7 @@ final class Ui {
     static Typeface font(Context c, String file) {
         Typeface cached = FONTS.get(file);
         if (cached != null) return cached;
-        Typeface made = Typeface.createFromAsset(c.getAssets(), "fonts/" + file);
+        Typeface made = sa.urtv.home.Fonts.get(c, file);   // never throws: Plex when Thmanyah is not in the build
         FONTS.put(file, made);
         return made;
     }

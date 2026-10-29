@@ -25,7 +25,6 @@ final class SleepTimer {
     static final String ACTION = "sa.urtv.home.SLEEP_NOW";
     /** sent to our own screens when the timer starts, ends or is cancelled */
     static final String CHANGED = "sa.urtv.home.SLEEP_CHANGED";
-    static final int[] MINUTES = {15, 30, 60, 90};
 
     private SleepTimer() { }
 

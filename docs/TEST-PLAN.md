@@ -61,7 +61,7 @@ Open: «معاينة الشاشة» row, or `adb shell am start -n sa.urtv.scree
 | B2 | Clock | 12-hour Arabic digits, no two digits touching (e.g. ٤٨), gold colon, small gold ص/م at the **upper left**; centred between the card and the right edge; matches the real Riyadh time |
 | B3 | Under clock | «بتوقيت <chosen city>» |
 | B4 | Top right | Hijri date (with هـ) over Gregorian date (Gregorian month name, e.g. أكتوبر) |
-| B5 | Top left (no boxes) | Temperature ° + condition word, with «غبار» in gold beside it (never instead of it); city · high/low; a small «Open-Meteo · قبل ١٥ د» line under the city; city · high/low; gold line from the left edge; تاسي / S&P 500 / بيتكوين each with ▲ green or ▼ red (or no arrow — never a dash) |
+| B5 | Top left (no boxes) | Temperature ° + condition word, with «غبار» in gold beside it (never instead of it); city · high/low; no source line (no «Open-Meteo»); gold line from the left edge; تاسي / S&P 500 / بيتكوين each with ▲ green or ▼ red (or no arrow — never a dash) |
 | B5b | Settings → الأسواق → pick 4 (e.g. تاسي, الذهب, الفضة, بيتكوين) and «عرض الأسواق» → السعر والنسبة, then preview | The four in the order of the list, each with its price (index and bitcoin with no decimals; gold and silver per gram with 2 decimals in ريال), ▲ green / ▼ red and the day's % change; under them «آخر تحديث ٩:١٥ م». Picking a fifth is refused with a message. Offline the last values stay; a market the TV cannot read shows no number and no arrow |
 | B6 | Markets accuracy | Compare arrows with today's TASI, S&P 500 and BTC 24h direction on any finance site |
 | B7 | هذا الأسبوع (set «بجانب الساعة» to المسلسلات first: the default card is the verse card) | Up to 5 shows matching A11–A15 filters, with season/episode, rating, weekday. Changes page every 25 s |
@@ -141,13 +141,13 @@ Use the TV's clock or wait for the real moment; take a screenshot at each.
 | L1 | Fresh install of both apps, press Home | No card on the home screen (the screensaver's card choice is «لا شيء» by default) |
 | L2 | Screensaver settings → «بطاقة على الشاشة الرئيسية» → مواقيت الصلاة, then Home | Card under the pills on the left: today's prayers, next one gold. D-pad never lands on it |
 | L3 | Repeat L2 with each option, then «لا شيء» | Card follows the choice; «لا شيء» removes it |
-| L4 | On the home screen, look at the top bar and the app rows, then press ▶ and ◀ on the pills and on the favourites | Everything reads from the right (المصادر، واي فاي، الإعدادات، شاشة التوقف، تلاوة; the first app of a row on the right); the right arrow always moves the highlight to the right and the left arrow to the left |
+| L4 | On the home screen, look at the top bar and the app rows, then press ▶ and ◀ on the pills and on the favourites | Everything reads from the right (المصادر، الإعدادات، إدارة التطبيقات، شاشة التوقف، تلاوة; no واي فاي، مؤقت النوم or المهام; the first app of a row on the right); the right arrow always moves the highlight to the right and the left arrow to the left |
 | L6 | Look at the clock in the top corner | The time on the right and the «ص» / «م» on its left (١٢:٣٣ ص) |
 | L7 | Build the launcher with another key (a test build) and press Home | The card on the home screen falls back to «مواقيت اليوم» for the default city, because the screensaver's settings cannot be read |
 | L8 | Long-press OK on any app → «ترتيب المفضلة…» (also: screensaver settings → «ترتيب التطبيقات المفضلة») | List of favourites, numbered, first one focused |
 | L9 | OK on the 3rd app, ▲ twice, OK; then Back | It turns gold, moves to the top, drops; home row shows it first |
 | L10 | «إزالة» beside an app (▶/◀ to reach it); then «+» on an app under «إضافة تطبيق» | Removed / added at the end; never below 5 or above 10 (a message says so) |
-| L12 | `optimize/saver.sh tasks add 'اشتري خبز'`, then press Home and the «المهام» pill | The pill is there; the list shows «اشتري خبز» with a gold dot; OK on it → «تم: اشتري خبز», it turns to ✓ |
+| L12 | `optimize/saver.sh tasks add 'اشتري خبز'`, then `optimize/saver.sh home-card tasks`, press Home and OK on the «المهام» card | No «المهام» pill; the list shows «اشتري خبز» with a gold dot; OK on it → «تم: اشتري خبز», it turns to ✓ |
 | L13 | In «المهام» press «تكلّم» and say «أضف مهمة موعد الطبيب» (a TV with a speech recognizer) | «أضيف «موعد الطبيب»؟» with نعم / لا; «لا» changes nothing, «نعم» adds it. Then «خلصت الطبيب» and «احذف الطبيب» each ask first |
 | L14 | Same on a TV with no recognizer | No «تكلّم» button; «الإدخال الصوتي غير متاح في هذا التلفزيون» once; OK and «حذف» still work |
 | L5 | `optimize/dock.sh apps`, then `optimize/dock.sh set <3 packages from that list>`, then `optimize/dock.sh show` | Home screen redraws at once with those three first, topped up to 5; `show` lists them |
@@ -185,7 +185,7 @@ Use the TV's clock or wait for the real moment; take a screenshot at each.
 ## 11. The «تلاوة» screen — the Quran, the radio and the adhan (inside the home app)
 
 Install: `optimize/install.sh launcher` (or `all`). «تلاوة» is the leftmost pill in the home screen's
-top bar (the row reads from the right: المصادر، واي فاي، الإعدادات، شاشة التوقف، تلاوة); it is not
+top bar (the row reads from the right: المصادر، الإعدادات، إدارة التطبيقات، شاشة التوقف، تلاوة); it is not
 in «كل التطبيقات». Full reference: [TILAWAH.md](TILAWAH.md).
 
 | ID | Action | Expected |
@@ -221,7 +221,7 @@ in «كل التطبيقات». Full reference: [TILAWAH.md](TILAWAH.md).
 | Y5 | `optimize/music.sh adhan now`, then «تلاوة» ← الأذان ← المؤذن | Your recording plays from the TV (no network needed); «أذان من ملفي» is the first row, in gold; picking one of the 21 switches back (`voice=N`) and `adhan voice own` returns |
 | Y6 | `optimize/music.sh adhan own-clear` | `own=none`; the list has no «أذان من ملفي»; the alarm uses the numbered voice |
 | Y7 | The home screen's top row, all seven pills | Each shows its icon only; the one with the focus widens (~150 ms) to its name, the others stay icons; nothing else moves, the row only grows sideways; ◀ ▶ walk them in the old order, to the ends |
-| Y8 | Focus the Wi-Fi pill; start the sleep timer (15 min) and focus its pill | Wi-Fi: the network's name (or «شبكة سلكية»/«غير متصل»); sleep: «مؤقت النوم ١٥ د», and its icon is gold when not focused |
+| Y8 | On the home page (scrolled to the top) press Back; during the iqama minutes look at the top edge | Back starts the screensaver (from the apps, Back first returns to the page); one «إقامة … بعد …» bar, not two |
 | Y9 | `optimize/saver.sh home-card tasks,prayerrow,hourly` (then with tasks second and third), look at the home screen | A small mic mark in the «المهام» card's corner, none on the other cards |
 | Y10 | ▼ from the pills | The «المهام» card takes the focus with a gold ring; ▼ goes to the dock, ▲ from the dock to the card, ▲ again to the pill; ◀ ▶ stay on it; the other cards never take the focus |
 | Y11 | OK on the card | «المهام» opens with the focus on «🎤 تكلّم»; OK again starts the voice adding («أضف مهمة …»); Back returns to the home screen with the card still focused |

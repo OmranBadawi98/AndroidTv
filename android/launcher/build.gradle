@@ -54,10 +54,12 @@ def copyWallpapers = tasks.register('copyWallpapers', Copy) {
 }
 preBuild.dependsOn copyWallpapers
 
-// the optional home-screen card is the screensaver's page in card-only mode, with its woff2 fonts
+// the optional home-screen card is the screensaver's page in card-only mode, with its woff2 fonts; «إدارة التطبيقات» never
+// disables what keep.txt and core.txt protect (Protected.java), the same lists optimize/disable.sh enforces
 def copyWeb = tasks.register('copyWeb', Copy) {
     from('../../dist') { include 'tv.html'; into 'web' }
     from('../../assets/fonts') { include '*.woff2'; into 'fonts' }
+    from('../../optimize/lists') { include 'keep.txt', 'core.txt', 'home-replaced.txt'; into 'lists' }
     into "$buildDir/generated/web"
 }
 preBuild.dependsOn copyWeb
