@@ -1,0 +1,158 @@
+$ echo '== model'; getprop ro.product.model; getprop ro.build.version.release
+== model
+Smart TV
+11
+$ echo '== disabled packages'; pm list packages -d
+== disabled packages
+package:au.com.stan.and
+package:tv.wuaki.apptv
+package:com.tcl.smartalexa
+package:com.netflix.ninja
+$ echo '== all packages'; pm list packages
+== all packages
+package:com.apgsolutionsllc.APGSOLUTIONSLLC0007
+package:com.android.cts.priv.ctsshim
+package:com.google.android.ext.services
+package:com.google.android.apps.mediashell
+package:com.google.android.katniss
+package:com.tcl.esticker
+package:com.android.dynsystem
+package:android.autoinstalls.config.google.gtvpai
+package:com.tcl.hotelmenu
+package:com.tcl.initsetup
+package:com.android.providers.calendar
+package:com.android.tv.settings
+package:com.tcl.tvinput
+package:com.android.providers.media
+package:com.google.android.onetimeinitializer
+package:com.google.android.ext.shared
+package:com.tcl.keyhelp
+package:com.tcl.factory.view
+package:com.devcoder.astraplayer
+package:com.google.android.apps.tv.launcherx
+package:au.com.stan.and
+package:com.android.externalstorage
+package:com.android.htmlviewer
+package:com.android.companiondevicemanager
+package:com.android.providers.downloads
+package:com.android.providers.tv
+package:com.android.networkstack.inprocess
+package:com.tcl.useragreement
+package:com.tcl.miracast
+package:com.google.android.tungsten.setupwraith
+package:com.tcl.gallery
+package:com.google.android.overlay.modules.permissioncontroller
+package:com.android.vending
+package:com.android.pacprocessor
+package:com.tcl.suspension
+package:com.tcl.channelplus
+package:com.android.certinstaller
+package:com.google.android.marvin.talkback
+package:android
+package:com.tcl.inputmethod.international
+package:com.android.backupconfirm
+package:com.tvos
+package:com.tcl.system.server
+package:com.tcl.guard
+package:com.android.statementservice
+package:com.android.settings.intelligence
+package:com.google.android.permissioncontroller
+package:com.amazon.amazonvideo.livingroom
+package:com.android.providers.settings
+package:com.android.sharedstoragebackup
+package:com.tcl.waterfall.overseas
+package:com.android.printspooler
+package:com.tcl.assistant
+package:com.android.dreams.basic
+package:com.tcl.t_solo
+package:com.google.android.overlay.modules.ext.services
+package:com.tcl.micmanager
+package:com.android.se
+package:com.android.inputdevices
+package:com.tcl.notereminder
+package:com.tcl.MultiScreenInteraction_TV
+package:com.google.android.modulemetadata
+package:com.google.android.webview
+package:com.android.keychain
+package:com.google.android.youtube.tvmusic
+package:com.google.android.packageinstaller
+package:com.google.android.gms
+package:com.google.android.gsf
+package:com.google.android.tts
+package:com.android.wifi.resources
+package:com.google.android.partnersetup
+package:com.android.localtransport
+package:com.google.android.videos
+package:com.tcl.android.webview
+package:com.anghami
+package:com.tcl.partnercustomizer
+package:com.android.proxyhandler
+package:com.iqiyi.i18n.tv
+package:com.google.android.overlay.modules.permissioncontroller.forframework
+package:com.google.android.feedback
+package:com.google.android.syncadapters.calendar
+package:com.android.soundpicker
+package:tv.wuaki.apptv
+package:com.android.tethering.overlay
+package:com.tcl.tv.tclhome_passive
+package:com.android.wallpaper.livepicker
+package:com.tcl.providers.config
+package:com.android.tv.settings.google.resoverlay
+package:com.tcl.usercenter
+package:com.google.android.apps.nbu.smartconnect.tv
+package:com.google.android.apps.tv.dreamx
+package:com.android.networkstack.tethering.inprocess
+package:com.android.networkstack.permissionconfig
+package:com.tcl.tv
+package:com.google.android.sss.authbridge
+package:com.android.cts.ctsshim
+package:com.google.android.overlay.modules.modulemetadata.forframework
+package:com.tcl.settings
+package:com.tcl.autopair
+package:com.google.android.youtube.tv
+package:com.esaba.downloader
+package:com.android.tv.settings.vendor.resoverlay
+package:com.android.vpndialogs
+package:com.tcl.smartalexa
+package:com.google.android.tv.frameworkpackagestubs
+package:com.tcl.ui_mediaCenter
+package:com.android.shell
+package:com.tcl.dashboard
+package:com.android.wallpaperbackup
+package:com.android.providers.userdictionary
+package:com.android.providers.media.module
+package:com.tcl.messagebox
+package:com.android.hotspot2.osulogin
+package:com.google.android.tv.assistant
+package:com.google.android.tv.remote.service
+package:com.android.location.fused
+package:com.android.deskclock
+package:com.android.systemui
+package:com.google.android.play.games
+package:com.tcl.ttvs
+package:com.netflix.ninja
+package:com.android.bluetooth
+package:com.android.providers.contacts
+package:com.android.captiveportallogin
+package:com.hkinnovate.downloader_for_tv
+package:com.android.tethering.overlay.gsi
+package:com.google.android.inputmethod.latin
+$ echo '== home'; cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN
+== home
+priority=2 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+com.google.android.apps.tv.launcherx/.home.HomeActivity
+$ echo '== screensaver'; settings get secure screensaver_components; settings get secure screensaver_enabled; settings get system screen_off_timeout
+== screensaver
+com.google.android.apps.tv.dreamx/.service.Backdrop
+1
+600000
+$ echo '== animation'; settings get global window_animation_scale; settings get global transition_animation_scale; settings get global animator_duration_scale
+== animation
+1.0
+1.0
+null
+$ echo '== cached apps (setting, then the value in use since boot)'; device_config get activity_manager max_cached_processes; dumpsys activity settings 2> /dev/null | grep -m1 max_cached_processes; settings get global cached_apps_freezer
+== cached apps (setting, then the value in use since boot)
+null
+  max_cached_processes=32
+null
